@@ -1,6 +1,6 @@
 {
   "name": "bg_clicker_bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "app/main.js",
   "scripts": {
     "start": "node bot.js",
@@ -20,7 +20,13 @@
     "url": "https://github.com/AkifAycicek/bg-click-bot.git"
   },
   "homepage": "https://github.com/AkifAycicek/bg-click-bot",
-  "keywords": ["clicker", "auto-clicker", "background", "bot", "electron"],
+  "keywords": [
+    "clicker",
+    "auto-clicker",
+    "background",
+    "bot",
+    "electron"
+  ],
   "author": "Akif Aycicek",
   "license": "MIT",
   "description": "Background auto-clicker bot with multi-tab preset support, window thumbnails, and global hotkeys",
