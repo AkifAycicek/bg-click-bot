@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/AkifAycicek/bg-click-bot/compare/v0.1.1...v0.1.2) (2026-03-22)
+
+
+### Bug Fixes
+
+* prevent CI hang from captureMousePosition polling ([0e8faf7](https://github.com/AkifAycicek/bg-click-bot/commit/0e8faf7cc0925028633736ab26e8ee225decb7e5))
+
 ## [0.1.1](https://github.com/AkifAycicek/bg-click-bot/compare/v0.1.0...v0.1.1) (2026-03-22)
 
 
