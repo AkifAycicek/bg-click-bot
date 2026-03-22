@@ -53,16 +53,14 @@ test.describe('Background Clicker Bot Electron App', () => {
         expect(heading).toContain('Background Clicker Bot');
     });
 
-    test('should show preset manager', async () => {
-        const text = await page.textContent('body');
-        expect(text).toContain('Profiller');
-        expect(text).toContain('Import');
-        expect(text).toContain('Export');
-        expect(text).toContain('Oto-kaydet');
+    test('should show settings gear button', async () => {
+        const gearBtn = await page.$('button .pi-cog');
+        expect(gearBtn).toBeTruthy();
     });
 
     test('should show window selector', async () => {
-        const windowSelect = await getCombobox(1);
+        // Only one combobox on main page now (window selector)
+        const windowSelect = await getCombobox(0);
         expect(windowSelect).toBeTruthy();
     });
 
@@ -89,7 +87,7 @@ test.describe('Background Clicker Bot Electron App', () => {
     });
 
     test('should populate window list on dropdown open', async () => {
-        const windowSelect = await getCombobox(1);
+        const windowSelect = await getCombobox(0);
         if (windowSelect) {
             await windowSelect.click();
             await page.waitForTimeout(500);
@@ -100,8 +98,8 @@ test.describe('Background Clicker Bot Electron App', () => {
     });
 
     test('should select a window, add multiple points, and verify table', async () => {
-        // 1. Open window selector dropdown (second combobox)
-        const windowSelect = await getCombobox(1);
+        // 1. Open window selector dropdown (only combobox on main page)
+        const windowSelect = await getCombobox(0);
         await windowSelect.click();
         await page.waitForTimeout(500);
 

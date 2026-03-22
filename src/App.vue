@@ -3,32 +3,41 @@
         <div class="flex items-center justify-between">
             <h1 class="text-xl font-bold">Background Clicker Bot</h1>
             <Button
-                :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
+                icon="pi pi-cog"
                 severity="secondary"
                 text
                 rounded
-                @click="toggleDark"
-                v-tooltip.left="isDark ? 'Aydinlik mod' : 'Karanlik mod'"
+                @click="showSettings = true"
+                v-tooltip.left="'Ayarlar'"
             />
         </div>
 
-        <Card>
-            <template #title><span class="text-sm">Profiller</span></template>
-            <template #content>
-                <PresetManager
-                    ref="presetManagerRef"
-                    :currentState="currentPresetState"
-                    :hasState="points.length > 0"
-                    :autoSave="autoSave"
-                    @load-preset="onLoadPreset"
-                    @auto-save-changed="onAutoSaveChanged"
-                    @preset-saved="onPresetSaved"
-                />
-            </template>
-        </Card>
+        <Drawer v-model:visible="showSettings" header="Ayarlar" position="right" :style="{ width: '400px' }">
+            <div class="flex flex-col gap-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">Karanlik Mod</span>
+                    <ToggleSwitch v-model="isDark" @change="toggleDark" />
+                </div>
+
+                <Divider />
+
+                <div>
+                    <h3 class="text-sm font-semibold mb-3">Profiller</h3>
+                    <PresetManager
+                        ref="presetManagerRef"
+                        :currentState="currentPresetState"
+                        :hasState="points.length > 0"
+                        :autoSave="autoSave"
+                        @load-preset="onLoadPreset"
+                        @auto-save-changed="onAutoSaveChanged"
+                        @preset-saved="onPresetSaved"
+                    />
+                </div>
+            </div>
+        </Drawer>
 
         <Card>
-            <template #title><span class="text-sm">Ayarlar</span></template>
+            <template #title><span class="text-sm">Hedef ve Noktalar</span></template>
             <template #content>
                 <div class="flex flex-col gap-4">
                     <WindowSelector
@@ -80,6 +89,9 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Drawer from 'primevue/drawer';
+import Divider from 'primevue/divider';
+import ToggleSwitch from 'primevue/toggleswitch';
 import PresetManager from './components/PresetManager.vue';
 import WindowSelector from './components/WindowSelector.vue';
 import AddPointForm from './components/AddPointForm.vue';
@@ -89,12 +101,12 @@ import StatusPanel from './components/StatusPanel.vue';
 // Refs
 const presetManagerRef = ref(null);
 const windowSelectorRef = ref(null);
+const showSettings = ref(false);
 
 // Dark mode
 const isDark = ref(false);
 
 async function toggleDark() {
-    isDark.value = !isDark.value;
     document.documentElement.classList.toggle('dark-mode', isDark.value);
     await saveSettings();
 }

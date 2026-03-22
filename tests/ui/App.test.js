@@ -13,12 +13,17 @@ describe('App', () => {
     it('renders all child components', async () => {
         const wrapper = mountApp();
         await flushPromises();
-        expect(wrapper.text()).toContain('Profiller');          // PresetManager card
-        expect(wrapper.text()).toContain('Ayarlar');            // Card title
+        expect(wrapper.text()).toContain('Hedef ve Noktalar'); // Card title
         expect(wrapper.text()).toContain('Yeni Nokta Ekle');   // AddPointForm
         expect(wrapper.text()).toContain('Tiklama Noktalari'); // ClickPointsTable card
         expect(wrapper.text()).toContain('Kontrol');            // StatusPanel card
         expect(wrapper.text()).toContain('Baslat');             // StatusPanel button
+    });
+
+    it('renders settings gear button', () => {
+        const wrapper = mountApp();
+        const gearBtn = wrapper.findAll('button').find(b => b.find('.pi-cog').exists());
+        expect(gearBtn).toBeTruthy();
     });
 
     it('shows empty points message initially', async () => {
