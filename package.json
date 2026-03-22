@@ -13,8 +13,7 @@
     "test:e2e": "npx vite build && playwright test",
     "test:all": "npm test && npm run test:ui && npm run test:e2e",
     "prebuild": "npm test && npm run test:ui && npm run test:e2e",
-    "build": "node build.js",
-    "build:cli": "node build.js --cli-only"
+    "build": "node build.js && npm run build:app"
   },
   "keywords": ["clicker", "auto-clicker", "background", "bot", "electron"],
   "author": "GHOST-V3",
