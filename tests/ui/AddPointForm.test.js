@@ -1,13 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import PrimeVue from 'primevue/config';
 import AddPointForm from '../../src/components/AddPointForm.vue';
 
-const mountWith = (props) =>
-    mount(AddPointForm, {
-        props,
-        global: { plugins: [PrimeVue] }
-    });
+const mountWith = (props) => mount(AddPointForm, { props });
 
 describe('AddPointForm', () => {
     it('renders form labels', () => {

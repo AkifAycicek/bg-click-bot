@@ -1,4 +1,12 @@
 import { vi } from 'vitest';
+import { config } from '@vue/test-utils';
+import PrimeVue from 'primevue/config';
+
+// Register PrimeVue and tooltip directive globally for all tests
+config.global.plugins = [PrimeVue];
+config.global.directives = {
+    tooltip: { mounted: () => {}, updated: () => {} }
+};
 
 // Mock matchMedia (PrimeVue Select uses it)
 window.matchMedia = window.matchMedia || vi.fn().mockImplementation(query => ({

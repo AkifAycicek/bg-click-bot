@@ -1,18 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import PrimeVue from 'primevue/config';
 import WindowSelector from '../../src/components/WindowSelector.vue';
 
 const mountWith = (props = {}) =>
     mount(WindowSelector, {
-        props: { disabled: false, ...props },
-        global: { plugins: [PrimeVue] }
+        props: { disabled: false, ...props }
     });
 
 describe('WindowSelector', () => {
-    it('renders label', () => {
+    it('renders select placeholder', () => {
         const wrapper = mountWith();
-        expect(wrapper.text()).toContain('Hedef Pencere');
+        expect(wrapper.text()).toContain('Pencere secin...');
     });
 
     it('renders refresh button', () => {

@@ -1,13 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
-import PrimeVue from 'primevue/config';
 import StatusPanel from '../../src/components/StatusPanel.vue';
 
-const mountWith = (props) =>
-    mount(StatusPanel, {
-        props,
-        global: { plugins: [PrimeVue] }
-    });
+const mountWith = (props) => mount(StatusPanel, { props });
 
 describe('StatusPanel', () => {
     it('shows Baslat button when not running', () => {

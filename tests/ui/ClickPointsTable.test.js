@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
-import PrimeVue from 'primevue/config';
 import ClickPointsTable from '../../src/components/ClickPointsTable.vue';
 
 const samplePoints = [
@@ -8,11 +7,7 @@ const samplePoints = [
     { x: 300, y: 400, interval: 1000 }
 ];
 
-const mountWith = (props) =>
-    mount(ClickPointsTable, {
-        props,
-        global: { plugins: [PrimeVue] }
-    });
+const mountWith = (props) => mount(ClickPointsTable, { props });
 
 describe('ClickPointsTable', () => {
     it('shows empty message when no points', () => {

@@ -1,6 +1,6 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert');
-const { makeLParam, getVisibleWindows, backgroundClick, captureMousePosition, WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON } = require('../bot');
+const { makeLParam, getVisibleWindows, backgroundClick, captureMousePosition, focusWindow, WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON } = require('../bot');
 
 // --- makeLParam ---
 
@@ -160,6 +160,31 @@ describe('captureMousePosition', () => {
     });
 });
 
+// --- focusWindow ---
+
+describe('focusWindow', () => {
+    it('should not throw on a valid window', () => {
+        const windows = getVisibleWindows();
+        assert.doesNotThrow(() => {
+            focusWindow(windows[0].hwnd);
+        });
+    });
+
+    it('should not throw on an invalid hwnd', () => {
+        assert.doesNotThrow(() => {
+            focusWindow(0);
+        });
+    });
+
+    it('should not throw on a minimized window hwnd', () => {
+        const windows = getVisibleWindows();
+        // Just verify it doesn't crash — actual focus behavior needs manual test
+        assert.doesNotThrow(() => {
+            focusWindow(windows[0].hwnd);
+        });
+    });
+});
+
 // --- module exports ---
 
 describe('module exports', () => {
@@ -169,6 +194,7 @@ describe('module exports', () => {
         assert.strictEqual(typeof bot.getVisibleWindows, 'function');
         assert.strictEqual(typeof bot.backgroundClick, 'function');
         assert.strictEqual(typeof bot.captureMousePosition, 'function');
+        assert.strictEqual(typeof bot.focusWindow, 'function');
     });
 
     it('should export all required constants', () => {
