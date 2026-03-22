@@ -9,6 +9,10 @@
                 placeholder="Pencere secin..."
                 class="w-full"
                 :disabled="disabled"
+                filter
+                :filterFields="['title']"
+                filterPlaceholder="Pencere ara..."
+                @filter="onFilter"
             />
         </div>
         <Button
@@ -22,9 +26,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import Select from 'primevue/select';
 import Button from 'primevue/button';
+import Select from 'primevue/select';
+import { onMounted, ref, watch } from 'vue';
 
 const props = defineProps({
     disabled: Boolean
@@ -35,6 +39,18 @@ const emit = defineEmits(['update:selectedWindow']);
 const windows = ref([]);
 const selected = ref(null);
 const loading = ref(false);
+let firstOpen = true;
+
+function onFilter(event) {
+    if (firstOpen && event.value === '') {
+        firstOpen = false;
+        const input = event.originalEvent?.target;
+        if (input) {
+            input.value = 'SRO';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+}
 
 async function refresh() {
     loading.value = true;
