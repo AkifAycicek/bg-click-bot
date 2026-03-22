@@ -3,7 +3,7 @@
         <div class="flex items-end gap-2">
             <div class="flex-1">
                 <Select
-                    v-model="selectedPreset"
+                    v-model="selectedForAction"
                     :options="presetList"
                     optionLabel="name"
                     dataKey="id"
@@ -12,27 +12,27 @@
                     filter
                     autoFilterFocus
                     filterPlaceholder="Profil ara..."
-                    @change="onSelectChange"
                 />
             </div>
             <Button
-                icon="pi pi-save"
-                severity="success"
-                size="small"
-                @click="onSave"
-                v-tooltip.top="'Kaydet'"
-                :disabled="!selectedPreset && !hasState"
-            />
-            <Button
-                icon="pi pi-plus"
+                icon="pi pi-external-link"
                 severity="primary"
                 size="small"
-                @click="showNewDialog = true"
-                v-tooltip.top="'Yeni profil'"
+                @click="openInTab"
+                :disabled="!selectedForAction"
+                v-tooltip.top="'Sekmede ac'"
             />
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
+            <Button
+                icon="pi pi-plus"
+                label="Yeni"
+                severity="secondary"
+                size="small"
+                outlined
+                @click="showNewDialog = true"
+            />
             <Button
                 icon="pi pi-upload"
                 label="Import"
@@ -48,7 +48,7 @@
                 size="small"
                 outlined
                 @click="onExport"
-                :disabled="!selectedPreset"
+                :disabled="!selectedForAction"
             />
             <Button
                 icon="pi pi-copy"
@@ -56,7 +56,7 @@
                 size="small"
                 text
                 @click="showDuplicateDialog = true"
-                :disabled="!selectedPreset"
+                :disabled="!selectedForAction"
                 v-tooltip.top="'Kopyala'"
             />
             <Button
@@ -65,7 +65,7 @@
                 size="small"
                 text
                 @click="showRenameDialog = true"
-                :disabled="!selectedPreset"
+                :disabled="!selectedForAction"
                 v-tooltip.top="'Yeniden adlandir'"
             />
             <Button
@@ -74,7 +74,7 @@
                 size="small"
                 text
                 @click="onDelete"
-                :disabled="!selectedPreset"
+                :disabled="!selectedForAction"
                 v-tooltip.top="'Sil'"
             />
 
@@ -90,7 +90,7 @@
                 <InputText v-model="newName" placeholder="Profil adi..." class="w-full" @keyup.enter="onCreate" />
                 <div class="flex justify-end gap-2">
                     <Button label="Iptal" severity="secondary" size="small" @click="showNewDialog = false" />
-                    <Button label="Olustur" size="small" @click="onCreate" :disabled="!newName.trim()" />
+                    <Button label="Olustur ve Ac" size="small" @click="onCreate" :disabled="!newName.trim()" />
                 </div>
             </div>
         </Dialog>
@@ -128,20 +128,16 @@ import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { usePresets } from '../composables/usePresets';
 
-const props = defineProps({
-    currentState: Object,
-    hasState: Boolean
-});
-
-const emit = defineEmits(['load-preset', 'auto-save-changed', 'preset-saved']);
+const emit = defineEmits(['open-in-tab', 'auto-save-changed']);
 
 const {
-    presetList, selectedPreset, autoSave,
-    refreshList, loadPreset, savePreset, createPreset,
-    deletePreset, renamePreset, duplicatePreset,
-    importPreset, exportPreset
+    presetList, autoSave,
+    refreshList, createPreset,
+    deletePresetById, renamePresetById, duplicatePresetById,
+    importPreset, exportPresetById
 } = usePresets();
 
+const selectedForAction = ref(null);
 const showNewDialog = ref(false);
 const showRenameDialog = ref(false);
 const showDuplicateDialog = ref(false);
@@ -149,48 +145,40 @@ const newName = ref('');
 const renameName = ref('');
 const duplicateName = ref('');
 
-async function onSelectChange(event) {
-    const preset = event.value;
-    if (!preset) return;
-    const full = await loadPreset(preset.id);
-    if (full) emit('load-preset', full);
-}
-
-async function onSave() {
-    if (!props.currentState) return;
-    if (selectedPreset.value) {
-        await savePreset(props.currentState);
-        emit('preset-saved', selectedPreset.value.id);
-    } else {
-        showNewDialog.value = true;
-    }
-    await refreshList();
+function openInTab() {
+    if (!selectedForAction.value) return;
+    emit('open-in-tab', { presetId: selectedForAction.value.id, presetName: selectedForAction.value.name });
 }
 
 async function onCreate() {
     if (!newName.value.trim()) return;
-    const result = await createPreset(newName.value.trim(), props.currentState);
+    const result = await createPreset(newName.value.trim(), { windowTitle: '', points: [] });
     showNewDialog.value = false;
+    const name = newName.value.trim();
     newName.value = '';
-    emit('preset-saved', result.id);
+    emit('open-in-tab', { presetId: result.id, presetName: name });
 }
 
 async function onDelete() {
-    await deletePreset();
+    if (!selectedForAction.value) return;
+    await deletePresetById(selectedForAction.value.id);
+    selectedForAction.value = null;
 }
 
 async function onRename() {
-    if (!renameName.value.trim()) return;
-    await renamePreset(renameName.value.trim());
+    if (!selectedForAction.value || !renameName.value.trim()) return;
+    const { id } = await renamePresetById(selectedForAction.value.id, renameName.value.trim());
     showRenameDialog.value = false;
     renameName.value = '';
+    selectedForAction.value = presetList.value.find(p => p.id === id) || null;
 }
 
 async function onDuplicate() {
-    if (!duplicateName.value.trim()) return;
-    await duplicatePreset(duplicateName.value.trim());
+    if (!selectedForAction.value || !duplicateName.value.trim()) return;
+    const { id } = await duplicatePresetById(selectedForAction.value.id, duplicateName.value.trim());
     showDuplicateDialog.value = false;
     duplicateName.value = '';
+    selectedForAction.value = presetList.value.find(p => p.id === id) || null;
 }
 
 async function onImport() {
@@ -198,9 +186,9 @@ async function onImport() {
 }
 
 async function onExport() {
-    await exportPreset();
+    if (!selectedForAction.value) return;
+    await exportPresetById(selectedForAction.value.id);
 }
 
-// Ensure list is fresh when component mounts
 refreshList();
 </script>
