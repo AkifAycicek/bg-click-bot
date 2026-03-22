@@ -5,8 +5,7 @@ const bot = require('../bot');
 const presets = require('./presets');
 
 let mainWindow;
-const activeTimers = [];
-let activeCounts = [];
+const instances = new Map(); // tabId -> { timers: [], counts: [] }
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -39,14 +38,44 @@ function createWindow() {
     }
 
     mainWindow.on('closed', () => {
-        stopAllTimers();
+        stopAllInstances();
         mainWindow = null;
     });
 }
 
-function stopAllTimers() {
-    activeTimers.forEach(t => clearInterval(t));
-    activeTimers.length = 0;
+function stopInstance(tabId) {
+    const instance = instances.get(tabId);
+    if (instance) {
+        instance.timers.forEach(t => clearInterval(t));
+        instances.delete(tabId);
+    }
+}
+
+function stopAllInstances() {
+    for (const [tabId] of instances) {
+        stopInstance(tabId);
+    }
+}
+
+function startInstance(tabId, hwnd, points) {
+    stopInstance(tabId);
+
+    const counts = new Array(points.length).fill(0);
+    const timers = [];
+
+    points.forEach((p, i) => {
+        const timer = setInterval(() => {
+            bot.backgroundClick(hwnd, p.x, p.y);
+            counts[i]++;
+            const total = counts.reduce((a, b) => a + b, 0);
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('click-count-update', { tabId, counts: [...counts], total });
+            }
+        }, p.interval);
+        timers.push(timer);
+    });
+
+    instances.set(tabId, { timers, counts });
 }
 
 // IPC Handlers
@@ -56,53 +85,35 @@ ipcMain.handle('get-windows', () => {
 });
 
 ipcMain.handle('capture-position', async (_event, hwnd) => {
-    // Focus target FIRST while we're still the foreground process
     bot.focusWindow(hwnd);
-
-    // Then minimize Electron
     if (mainWindow) mainWindow.minimize();
-
-    // Small delay so windows settle
     await new Promise(r => setTimeout(r, 300));
-
     const pos = await bot.captureMousePosition(hwnd);
-
     if (mainWindow) mainWindow.restore();
-
     return pos;
 });
 
-function startTimers(hwnd, points) {
-    stopAllTimers();
-
-
-    points.forEach((p, i) => {
-        const timer = setInterval(() => {
-            bot.backgroundClick(hwnd, p.x, p.y);
-            activeCounts[i]++;
-            const total = activeCounts.reduce((a, b) => a + b, 0);
-            if (mainWindow && !mainWindow.isDestroyed()) {
-                mainWindow.webContents.send('click-count-update', { counts: [...activeCounts], total });
-            }
-        }, p.interval);
-        activeTimers.push(timer);
-    });
-}
-
-ipcMain.handle('start-clicking', (_event, { hwnd, points }) => {
-    activeCounts = new Array(points.length).fill(0);
-    startTimers(hwnd, points);
+ipcMain.handle('start-clicking', (_event, { tabId, hwnd, points }) => {
+    startInstance(tabId || 'default', hwnd, points);
     return { success: true };
 });
 
-ipcMain.handle('stop-clicking', () => {
-    stopAllTimers();
-    activeCounts = [];
+ipcMain.handle('stop-clicking', (_event, { tabId } = {}) => {
+    stopInstance(tabId || 'default');
     return { success: true };
 });
 
-ipcMain.handle('update-points', (_event, { hwnd, points }) => {
-    startTimers(hwnd, points);
+ipcMain.handle('update-points', (_event, { tabId, hwnd, points }) => {
+    const instance = instances.get(tabId || 'default');
+    const counts = instance ? [...instance.counts] : [];
+    startInstance(tabId || 'default', hwnd, points);
+    // Restore counts for existing points
+    const newInstance = instances.get(tabId || 'default');
+    if (newInstance) {
+        for (let i = 0; i < Math.min(counts.length, newInstance.counts.length); i++) {
+            newInstance.counts[i] = counts[i];
+        }
+    }
     return { success: true };
 });
 
@@ -154,6 +165,6 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-    stopAllTimers();
+    stopAllInstances();
     app.quit();
 });

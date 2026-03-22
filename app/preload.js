@@ -3,9 +3,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
     getWindows: () => ipcRenderer.invoke('get-windows'),
     capturePosition: (hwnd) => ipcRenderer.invoke('capture-position', hwnd),
-    startClicking: (hwnd, points) => ipcRenderer.invoke('start-clicking', { hwnd, points }),
-    stopClicking: () => ipcRenderer.invoke('stop-clicking'),
-    updatePoints: (hwnd, points) => ipcRenderer.invoke('update-points', { hwnd, points }),
+    startClicking: (tabId, hwnd, points) => ipcRenderer.invoke('start-clicking', { tabId, hwnd, points }),
+    stopClicking: (tabId) => ipcRenderer.invoke('stop-clicking', { tabId }),
+    updatePoints: (tabId, hwnd, points) => ipcRenderer.invoke('update-points', { tabId, hwnd, points }),
     onClickCountUpdate: (callback) => {
         ipcRenderer.on('click-count-update', (_event, data) => callback(data));
     },
