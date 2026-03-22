@@ -35,6 +35,7 @@
                 size="small"
                 @click="onNewTab"
                 v-tooltip.top="'Yeni sekme'"
+                class="self-center"
             />
         </TabList>
         <TabPanels>
@@ -51,13 +52,13 @@
 
 <script setup>
 import Button from 'primevue/button';
-import Tabs from 'primevue/tabs';
-import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
-import TabPanels from 'primevue/tabpanels';
+import TabList from 'primevue/tablist';
 import TabPanel from 'primevue/tabpanel';
-import BotPanel from './BotPanel.vue';
+import TabPanels from 'primevue/tabpanels';
+import Tabs from 'primevue/tabs';
 import { useTabManager } from '../composables/useTabManager';
+import BotPanel from './BotPanel.vue';
 
 const { tabs, activeTabId, openTab, closeTab, getInstance } = useTabManager();
 
