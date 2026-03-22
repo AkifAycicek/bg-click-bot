@@ -1,7 +1,6 @@
 <template>
     <div class="flex items-end gap-2">
         <div class="flex-1">
-            <label class="block text-sm font-medium mb-1">Hedef Pencere</label>
             <Select
                 v-model="selected"
                 :options="windows"

@@ -1,6 +1,6 @@
 <template>
-    <div class="border border-surface-200 rounded-lg p-4">
-        <h3 class="text-sm font-semibold mb-3">Yeni Nokta Ekle</h3>
+    <div>
+        <h4 class="text-xs font-semibold mb-3 text-surface-500">Yeni Nokta Ekle</h4>
 
         <div class="flex items-end gap-2 mb-3">
             <div class="flex-1">
@@ -39,9 +39,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import InputNumber from 'primevue/inputnumber';
 import Button from 'primevue/button';
+import InputNumber from 'primevue/inputnumber';
+import { ref } from 'vue';
 
 const props = defineProps({
     selectedHwnd: Number,
