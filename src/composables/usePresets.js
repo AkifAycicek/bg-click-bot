@@ -1,7 +1,6 @@
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 
 const presetList = ref([]);
-const selectedPreset = ref(null);
 const autoSave = ref(false);
 
 export function usePresets() {
@@ -11,94 +10,60 @@ export function usePresets() {
 
     async function loadPreset(id) {
         const full = await window.electronAPI.loadPreset(id);
-        if (full) {
-            selectedPreset.value = { ...full, id };
-            return { ...full, id };
-        }
+        if (full) return { ...full, id };
         return null;
     }
 
-    async function savePreset(state) {
-        if (!selectedPreset.value) return null;
-        const result = await window.electronAPI.savePreset({
-            id: selectedPreset.value.id,
-            name: selectedPreset.value.name,
-            ...state
-        });
-        return result;
+    async function savePresetById(id, name, state) {
+        return await window.electronAPI.savePreset({ id, name, ...state });
     }
 
     async function createPreset(name, state) {
         const result = await window.electronAPI.savePreset({ name, ...state });
         await refreshList();
-        const found = presetList.value.find(p => p.id === result.id);
-        if (found) selectedPreset.value = { ...found };
         return result;
     }
 
-    async function deletePreset() {
-        if (!selectedPreset.value) return;
-        await window.electronAPI.deletePreset(selectedPreset.value.id);
-        selectedPreset.value = null;
+    async function deletePresetById(id) {
+        await window.electronAPI.deletePreset(id);
         await refreshList();
     }
 
-    async function renamePreset(newName) {
-        if (!selectedPreset.value) return null;
-        const { id } = await window.electronAPI.renamePreset(selectedPreset.value.id, newName);
+    async function renamePresetById(id, newName) {
+        const result = await window.electronAPI.renamePreset(id, newName);
         await refreshList();
-        const found = presetList.value.find(p => p.id === id);
-        if (found) selectedPreset.value = { ...found };
-        return { id };
+        return result;
     }
 
-    async function duplicatePreset(newName) {
-        if (!selectedPreset.value) return null;
-        const { id } = await window.electronAPI.duplicatePreset(selectedPreset.value.id, newName);
+    async function duplicatePresetById(id, newName) {
+        const result = await window.electronAPI.duplicatePreset(id, newName);
         await refreshList();
-        const found = presetList.value.find(p => p.id === id);
-        if (found) selectedPreset.value = { ...found };
-        return { id };
+        return result;
     }
 
     async function importPreset() {
         const result = await window.electronAPI.importPreset();
         if (result && !result.error) {
             await refreshList();
-            const found = presetList.value.find(p => p.id === result.id);
-            if (found) selectedPreset.value = { ...found };
         }
         return result;
     }
 
-    async function exportPreset() {
-        if (!selectedPreset.value) return;
-        await window.electronAPI.exportPreset(selectedPreset.value.id);
+    async function exportPresetById(id) {
+        await window.electronAPI.exportPreset(id);
     }
-
-    function selectById(id) {
-        const found = presetList.value.find(p => p.id === id);
-        if (found) selectedPreset.value = { ...found };
-    }
-
-    const selectedPresetId = computed(() => selectedPreset.value?.id || null);
-    const selectedPresetName = computed(() => selectedPreset.value?.name || '');
 
     return {
         presetList,
-        selectedPreset,
-        selectedPresetId,
-        selectedPresetName,
         autoSave,
         refreshList,
         loadPreset,
-        savePreset,
+        savePresetById,
         createPreset,
-        deletePreset,
-        renamePreset,
-        duplicatePreset,
+        deletePresetById,
+        renamePresetById,
+        duplicatePresetById,
         importPreset,
-        exportPreset,
-        selectById
+        exportPresetById
     };
 }
