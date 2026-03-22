@@ -24,11 +24,13 @@
                 <ClickPointsTable
                     :points="instance.points.value"
                     :clickCounts="instance.clickCounts.value"
+                    :pausedPoints="instance.pausedPoints.value"
                     :isRunning="instance.isRunning.value"
                     :capturing="instance.recapturing.value"
                     @remove-point="onRemovePoint"
                     @update-point="onUpdatePoint"
                     @recapture-point="onRecapturePoint"
+                    @toggle-pause="instance.togglePointPause($event)"
                 />
             </template>
         </Card>

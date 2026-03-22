@@ -5,6 +5,7 @@
         stripedRows
         :editMode="isRunning ? undefined : 'cell'"
         @cell-edit-complete="onCellEdit"
+        :rowClass="rowClass"
     >
         <Column field="index" header="#" style="width: 3rem" />
         <Column field="name" header="Isim">
@@ -52,9 +53,18 @@
             </template>
         </Column>
         <Column field="clicks" header="Tiklamalar" />
-        <Column header="" style="width: 5rem">
+        <Column header="" style="width: 7rem">
             <template #body="{ data }">
                 <div class="flex gap-1">
+                    <Button
+                        v-if="isRunning"
+                        :icon="isPaused(data.index - 1) ? 'pi pi-play' : 'pi pi-pause'"
+                        :severity="isPaused(data.index - 1) ? 'success' : 'warn'"
+                        text
+                        size="small"
+                        @click="$emit('toggle-pause', data.index - 1)"
+                        v-tooltip.top="isPaused(data.index - 1) ? 'Devam et' : 'Duraklat'"
+                    />
                     <Button
                         icon="pi pi-map-marker"
                         severity="secondary"
@@ -93,11 +103,20 @@ import InputText from 'primevue/inputtext';
 const props = defineProps({
     points: Array,
     clickCounts: Array,
+    pausedPoints: Array,
     isRunning: Boolean,
     capturing: Boolean
 });
 
-const emit = defineEmits(['remove-point', 'update-point', 'recapture-point']);
+const emit = defineEmits(['remove-point', 'update-point', 'recapture-point', 'toggle-pause']);
+
+function isPaused(index) {
+    return props.pausedPoints?.[index] || false;
+}
+
+function rowClass(data) {
+    return isPaused(data.index - 1) ? 'opacity-40' : '';
+}
 
 const tableData = computed(() =>
     props.points.map((p, i) => ({

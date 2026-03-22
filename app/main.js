@@ -61,21 +61,23 @@ function startInstance(tabId, hwnd, points) {
     stopInstance(tabId);
 
     const counts = new Array(points.length).fill(0);
+    const paused = new Array(points.length).fill(false);
     const timers = [];
 
     points.forEach((p, i) => {
         const timer = setInterval(() => {
+            if (paused[i]) return;
             bot.backgroundClick(hwnd, p.x, p.y);
             counts[i]++;
             const total = counts.reduce((a, b) => a + b, 0);
             if (mainWindow && !mainWindow.isDestroyed()) {
-                mainWindow.webContents.send('click-count-update', { tabId, counts: [...counts], total });
+                mainWindow.webContents.send('click-count-update', { tabId, counts: [...counts], total, paused: [...paused] });
             }
         }, p.interval);
         timers.push(timer);
     });
 
-    instances.set(tabId, { timers, counts });
+    instances.set(tabId, { timers, counts, paused, hwnd, points });
 }
 
 // IPC Handlers
@@ -105,6 +107,19 @@ ipcMain.handle('start-clicking', (_event, { tabId, hwnd, points }) => {
 ipcMain.handle('stop-clicking', (_event, { tabId } = {}) => {
     stopInstance(tabId || 'default');
     return { success: true };
+});
+
+ipcMain.handle('toggle-point-pause', (_event, { tabId, pointIndex }) => {
+    const instance = instances.get(tabId);
+    if (!instance || pointIndex < 0 || pointIndex >= instance.paused.length) return { success: false };
+    instance.paused[pointIndex] = !instance.paused[pointIndex];
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        const total = instance.counts.reduce((a, b) => a + b, 0);
+        mainWindow.webContents.send('click-count-update', {
+            tabId, counts: [...instance.counts], total, paused: [...instance.paused]
+        });
+    }
+    return { success: true, paused: instance.paused[pointIndex] };
 });
 
 ipcMain.handle('update-points', (_event, { tabId, hwnd, points }) => {

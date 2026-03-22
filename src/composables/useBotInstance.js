@@ -7,6 +7,7 @@ export function useBotInstance(tabId) {
     const isRunning = ref(false);
     const clickCounts = ref([]);
     const totalClicks = ref(0);
+    const pausedPoints = ref([]);
     const recapturing = ref(false);
 
     const canStart = computed(() =>
@@ -57,6 +58,7 @@ export function useBotInstance(tabId) {
         if (!canStart.value) return;
         clickCounts.value = new Array(points.value.length).fill(0);
         totalClicks.value = 0;
+        pausedPoints.value = new Array(points.value.length).fill(false);
 
         await window.electronAPI.startClicking(
             tabId,
@@ -70,12 +72,18 @@ export function useBotInstance(tabId) {
     async function stopBot() {
         await window.electronAPI.stopClicking(tabId);
         isRunning.value = false;
+        pausedPoints.value = [];
+    }
+
+    async function togglePointPause(pointIndex) {
+        await window.electronAPI.togglePointPause(tabId, pointIndex);
     }
 
     function handleCountUpdate(data) {
         if (data.tabId !== tabId) return;
         clickCounts.value = data.counts;
         totalClicks.value = data.total;
+        if (data.paused) pausedPoints.value = data.paused;
     }
 
     function loadFromPreset(preset) {
@@ -98,6 +106,7 @@ export function useBotInstance(tabId) {
         clickCounts,
         totalClicks,
         recapturing,
+        pausedPoints,
         canStart,
         currentPresetState,
         onWindowSelected,
@@ -107,6 +116,7 @@ export function useBotInstance(tabId) {
         recapturePoint,
         startBot,
         stopBot,
+        togglePointPause,
         handleCountUpdate,
         loadFromPreset,
         dispose
