@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import Button from 'primevue/button';
 import Drawer from 'primevue/drawer';
 import Divider from 'primevue/divider';
@@ -46,7 +46,7 @@ import BotTabView from './components/BotTabView.vue';
 import { useTabManager } from './composables/useTabManager';
 import { usePresets } from './composables/usePresets';
 
-const { openTab, getOpenTabsState, restoreOpenTabs } = useTabManager();
+const { tabs, activeTabId, openTab, getOpenTabsState, restoreOpenTabs } = useTabManager();
 const { autoSave, refreshList } = usePresets();
 
 const showSettings = ref(false);
@@ -78,6 +78,12 @@ async function onAutoSaveChanged() {
     await persistSettings();
 }
 
+// Persist tab state on any tab change
+let initialized = false;
+watch([tabs, activeTabId], () => {
+    if (initialized) persistSettings();
+}, { deep: true });
+
 // Settings persistence
 async function persistSettings() {
     const tabState = getOpenTabsState();
@@ -101,6 +107,8 @@ onMounted(async () => {
     } else if (settings.lastPresetId) {
         await openTab(settings.lastPresetId, 'Preset');
     }
+
+    initialized = true;
 });
 
 onUnmounted(() => {
