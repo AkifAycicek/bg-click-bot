@@ -2,6 +2,8 @@
 
 A Windows desktop application for sending automated background clicks to any window — even when it's not in focus. Built with Electron, Vue 3, PrimeVue, and Tailwind CSS.
 
+English | [Turkce](README.tr.md)
+
 ## Features
 
 - **Background clicking** — sends clicks via Windows PostMessage API, works while alt-tabbed
