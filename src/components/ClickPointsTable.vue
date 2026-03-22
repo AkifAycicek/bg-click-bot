@@ -119,7 +119,12 @@ function onCellEdit(event) {
 
 .editable-cell:hover {
     border-color: var(--p-primary-color, #6366f1);
-    background: var(--p-primary-50, rgba(99, 102, 241, 0.05));
+    background: rgba(99, 102, 241, 0.08);
+}
+
+:global(.dark-mode) .editable-cell:hover {
+    border-color: var(--p-primary-300, #a5b4fc);
+    background: rgba(165, 180, 252, 0.1);
 }
 
 .editable-icon {
