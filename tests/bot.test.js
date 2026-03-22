@@ -1,6 +1,6 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert');
-const { makeLParam, getVisibleWindows, backgroundClick, WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON } = require('./bot');
+const { makeLParam, getVisibleWindows, backgroundClick, WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON } = require('../bot');
 
 describe('makeLParam', () => {
     it('should encode x and y into a single LPARAM value', () => {
