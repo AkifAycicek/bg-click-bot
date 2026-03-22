@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0](https://github.com/AkifAycicek/bg-click-bot/compare/v1.0.0...v1.1.0) (2026-03-22)
+## [0.1.0](https://github.com/AkifAycicek/bg-click-bot/releases/tag/v0.1.0) (2026-03-22)
 
 
 ### Features
