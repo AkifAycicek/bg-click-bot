@@ -113,66 +113,87 @@ async function main() {
     const selected = windows[windowIdx];
     console.log(`\nSecilen: "${selected.title}" (hwnd: ${selected.hwnd})`);
 
-    // 2. Get click coordinates
-    console.log('\nKoordinat secimi:');
-    console.log('  [1] Fare ile tikla (pencerede tiklayin, koordinat yakalansin)');
-    console.log('  [2] Manuel gir (X, Y degerlerini yaz)');
+    // 2. How many points?
+    const pointCountStr = await askQuestion(rl, '\nKac noktaya tiklanacak? ');
+    const pointCount = parseInt(pointCountStr);
 
-    const coordMethod = await askQuestion(rl, '\nSecim (1/2): ');
-
-    let x, y;
-
-    if (coordMethod.trim() === '1') {
+    if (isNaN(pointCount) || pointCount < 1) {
+        console.log('Gecersiz sayi!');
         rl.close();
-        const pos = await captureMousePosition(selected.hwnd);
-        x = pos.x;
-        y = pos.y;
-    } else {
-        const xStr = await askQuestion(rl, '\nX koordinati (pencere icindeki): ');
-        const yStr = await askQuestion(rl, 'Y koordinati (pencere icindeki): ');
-        x = parseInt(xStr);
-        y = parseInt(yStr);
-
-        if (isNaN(x) || isNaN(y)) {
-            console.log('Gecersiz koordinat!');
-            rl.close();
-            return;
-        }
-    }
-
-    // 3. Get interval - reopen readline if it was closed for mouse capture
-    let rl2 = rl;
-    if (coordMethod.trim() === '1') {
-        rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
-    }
-
-    const intervalStr = await askQuestion(rl2, '\nTiklama araligi (ms): ');
-    const interval = parseInt(intervalStr);
-
-    if (isNaN(interval) || interval < 100) {
-        console.log('Gecersiz aralik! (min 100ms)');
-        rl2.close();
         return;
     }
 
-    rl2.close();
+    // 3. Get click coordinates for each point
+    const points = [];
+    let rlActive = rl;
+
+    for (let i = 0; i < pointCount; i++) {
+        console.log(`\n--- Nokta ${i + 1}/${pointCount} ---`);
+        console.log('Koordinat secimi:');
+        console.log('  [1] Fare ile tikla (pencerede tiklayin, koordinat yakalansin)');
+        console.log('  [2] Manuel gir (X, Y degerlerini yaz)');
+
+        const coordMethod = await askQuestion(rlActive, '\nSecim (1/2): ');
+
+        let x, y;
+        if (coordMethod.trim() === '1') {
+            rlActive.close();
+            const pos = await captureMousePosition(selected.hwnd);
+            x = pos.x;
+            y = pos.y;
+            rlActive = readline.createInterface({ input: process.stdin, output: process.stdout });
+        } else {
+            const xStr = await askQuestion(rlActive, '\nX koordinati (pencere icindeki): ');
+            const yStr = await askQuestion(rlActive, 'Y koordinati (pencere icindeki): ');
+            x = parseInt(xStr);
+            y = parseInt(yStr);
+
+            if (isNaN(x) || isNaN(y)) {
+                console.log('Gecersiz koordinat!');
+                rlActive.close();
+                return;
+            }
+        }
+
+        // Get interval for this point
+        const intervalStr = await askQuestion(rlActive, `Nokta ${i + 1} tiklama araligi (ms): `);
+        const interval = parseInt(intervalStr);
+
+        if (isNaN(interval) || interval < 100) {
+            console.log('Gecersiz aralik! (min 100ms)');
+            rlActive.close();
+            return;
+        }
+
+        points.push({ x, y, interval });
+    }
+
+    rlActive.close();
 
     console.log(`\nBot baslatildi!`);
     console.log(`  Pencere: ${selected.title}`);
-    console.log(`  Konum: (${x}, ${y})`);
-    console.log(`  Aralik: ${interval}ms`);
+    console.log(`  Noktalar:`);
+    points.forEach((p, i) => console.log(`    ${i + 1}. (${p.x}, ${p.y}) - ${p.interval}ms`));
     console.log(`\nDurdurmak icin Ctrl+C basin.\n`);
 
-    let clickCount = 0;
-    const timer = setInterval(() => {
-        backgroundClick(selected.hwnd, x, y);
-        clickCount++;
-        process.stdout.write(`\rTiklama sayisi: ${clickCount}`);
-    }, interval);
+    let totalClicks = 0;
+    const clickCounts = new Array(points.length).fill(0);
+    const timers = [];
+
+    points.forEach((p, i) => {
+        const timer = setInterval(() => {
+            backgroundClick(selected.hwnd, p.x, p.y);
+            clickCounts[i]++;
+            totalClicks++;
+            const status = points.map((_, j) => `N${j + 1}:${clickCounts[j]}`).join(' | ');
+            process.stdout.write(`\rToplam: ${totalClicks} | ${status}`);
+        }, p.interval);
+        timers.push(timer);
+    });
 
     process.on('SIGINT', () => {
-        clearInterval(timer);
-        console.log(`\n\nBot durduruldu. Toplam ${clickCount} tiklama yapildi.`);
+        timers.forEach(t => clearInterval(t));
+        console.log(`\n\nBot durduruldu. Toplam ${totalClicks} tiklama yapildi.`);
         process.exit(0);
     });
 }
