@@ -72,10 +72,10 @@ fs.writeFileSync(path.join(DIST, 'clicker.bat'), guiBat);
 console.log('Created clicker.bat (GUI) and clicker_cli.bat (CLI)');
 
 // Summary
-console.log('\n=== Build tamamlandi! ===\n');
-console.log('dist/ klasoru icerigi:\n');
+console.log('\n=== Build complete! ===\n');
+console.log('dist/ contents:\n');
 listDir(DIST);
-console.log('\nKullanim:');
+console.log('\nUsage:');
 console.log('  GUI:  dist/clicker.bat');
 console.log('  CLI:  dist/clicker_cli.bat');
 

@@ -12,3 +12,4 @@ asarUnpack:
   - "node_modules/koffi/**/*.node"
 win:
   target: portable
+  icon: assets/icon.ico

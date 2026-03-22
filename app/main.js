@@ -93,30 +93,51 @@ function startInstance(tabId, hwnd, points) {
 // IPC Handlers
 
 ipcMain.handle('get-windows', () => {
-    const windows = bot.getVisibleWindows();
-    return windows.map(w => ({
-        ...w,
-        thumbnail: bot.captureWindowThumbnail(w.hwnd)
-    }));
+    try {
+        const windows = bot.getVisibleWindows();
+        return windows.map(w => ({
+            ...w,
+            thumbnail: bot.captureWindowThumbnail(w.hwnd)
+        }));
+    } catch (err) {
+        console.error('get-windows error:', err.message);
+        return [];
+    }
 });
 
 ipcMain.handle('capture-position', async (_event, hwnd) => {
-    bot.focusWindow(hwnd);
-    if (mainWindow) mainWindow.minimize();
-    await new Promise(r => setTimeout(r, 300));
-    const pos = await bot.captureMousePosition(hwnd);
-    if (mainWindow) mainWindow.restore();
-    return pos;
+    try {
+        bot.focusWindow(hwnd);
+        if (mainWindow) mainWindow.minimize();
+        await new Promise(r => setTimeout(r, 300));
+        const pos = await bot.captureMousePosition(hwnd);
+        if (mainWindow) mainWindow.restore();
+        return pos;
+    } catch (err) {
+        if (mainWindow) mainWindow.restore();
+        console.error('capture-position error:', err.message);
+        return { error: err.message };
+    }
 });
 
 ipcMain.handle('start-clicking', (_event, { tabId, hwnd, points }) => {
-    startInstance(tabId || 'default', hwnd, points);
-    return { success: true };
+    try {
+        startInstance(tabId || 'default', hwnd, points);
+        return { success: true };
+    } catch (err) {
+        console.error('start-clicking error:', err.message);
+        return { success: false, error: err.message };
+    }
 });
 
 ipcMain.handle('stop-clicking', (_event, { tabId } = {}) => {
-    stopInstance(tabId || 'default');
-    return { success: true };
+    try {
+        stopInstance(tabId || 'default');
+        return { success: true };
+    } catch (err) {
+        console.error('stop-clicking error:', err.message);
+        return { success: false, error: err.message };
+    }
 });
 
 ipcMain.handle('toggle-point-pause', (_event, { tabId, pointIndex }) => {

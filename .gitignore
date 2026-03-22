@@ -5,3 +5,8 @@ dist-electron/
 test-results/
 .claude
 CLAUDE.md
+.env
+.env.local
+.DS_Store
+Thumbs.db
+*.log

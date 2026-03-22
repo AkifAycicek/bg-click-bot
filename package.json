@@ -16,10 +16,10 @@
     "build": "node build.js",
     "build:cli": "node build.js --cli-only"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "Background Clicker Bot",
+  "keywords": ["clicker", "auto-clicker", "background", "bot", "electron"],
+  "author": "GHOST-V3",
+  "license": "MIT",
+  "description": "Background auto-clicker bot with multi-tab preset support, window thumbnails, and global hotkeys",
   "dependencies": {
     "@primevue/themes": "^4.5.4",
     "@tailwindcss/postcss": "^4.2.2",
