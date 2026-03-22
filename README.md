@@ -17,6 +17,14 @@ A Windows desktop application for sending automated background clicks to any win
 - **Dark mode** — system preference detection with manual toggle
 - **Window focus** — reliably brings target window to foreground using AutoHotkey-style technique
 
+## Download & Install
+
+1. Go to [Releases](https://github.com/AkifAycicek/bg-click-bot/releases)
+2. Download the latest `.exe` file
+3. Run the exe
+
+> **Windows SmartScreen Warning:** Since the app is not code-signed, Windows may show a warning. Click **"More info"** → **"Run anyway"** to proceed. This is normal for unsigned open-source applications.
+
 ## System Requirements
 
 - Windows 10/11 (x64)
