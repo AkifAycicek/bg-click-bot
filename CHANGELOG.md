@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/AkifAycicek/bg-click-bot/compare/v0.1.2...v0.1.3) (2026-03-22)
+
+
+### Bug Fixes
+
+* skip CI on release-please version bump commits ([3f16c9d](https://github.com/AkifAycicek/bg-click-bot/commit/3f16c9d353e60badf45425ca38c453a67660a6c3))
+
 ## [0.1.2](https://github.com/AkifAycicek/bg-click-bot/compare/v0.1.1...v0.1.2) (2026-03-22)
 
 
