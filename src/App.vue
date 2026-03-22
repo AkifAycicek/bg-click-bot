@@ -13,12 +13,29 @@
         </div>
 
         <Card>
+            <template #title><span class="text-sm">Profiller</span></template>
+            <template #content>
+                <PresetManager
+                    ref="presetManagerRef"
+                    :currentState="currentPresetState"
+                    :hasState="points.length > 0"
+                    :autoSave="autoSave"
+                    @load-preset="onLoadPreset"
+                    @auto-save-changed="onAutoSaveChanged"
+                    @preset-saved="onPresetSaved"
+                />
+            </template>
+        </Card>
+
+        <Card>
             <template #title><span class="text-sm">Ayarlar</span></template>
             <template #content>
                 <div class="flex flex-col gap-4">
                     <WindowSelector
+                        ref="windowSelectorRef"
                         :disabled="isRunning"
-                        @update:selectedWindow="selectedWindow = $event"
+                        :targetTitle="targetTitle"
+                        @update:selectedWindow="onWindowSelected"
                     />
                     <AddPointForm
                         :selectedHwnd="selectedWindow?.hwnd"
@@ -60,43 +77,91 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
+import PresetManager from './components/PresetManager.vue';
 import WindowSelector from './components/WindowSelector.vue';
 import AddPointForm from './components/AddPointForm.vue';
 import ClickPointsTable from './components/ClickPointsTable.vue';
 import StatusPanel from './components/StatusPanel.vue';
 
+// Refs
+const presetManagerRef = ref(null);
+const windowSelectorRef = ref(null);
+
+// Dark mode
 const isDark = ref(false);
 
-function toggleDark() {
+async function toggleDark() {
     isDark.value = !isDark.value;
     document.documentElement.classList.toggle('dark-mode', isDark.value);
-    localStorage.setItem('bg-clicker-dark-mode', isDark.value ? '1' : '0');
+    await saveSettings();
 }
 
-function initDarkMode() {
-    const saved = localStorage.getItem('bg-clicker-dark-mode');
-    if (saved !== null) {
-        isDark.value = saved === '1';
+async function initDarkMode(settings) {
+    if (settings.darkMode !== undefined) {
+        isDark.value = settings.darkMode;
     } else {
         isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     document.documentElement.classList.toggle('dark-mode', isDark.value);
 }
 
+// App state
 const selectedWindow = ref(null);
+const targetTitle = ref('');
 const points = ref([]);
 const isRunning = ref(false);
 const clickCounts = ref([]);
 const totalClicks = ref(0);
 const recapturing = ref(false);
+const autoSave = ref(false);
+const currentPresetId = ref(null);
 
 const canStart = computed(() =>
     selectedWindow.value && points.value.length > 0 && !isRunning.value
 );
 
+const currentPresetState = computed(() => ({
+    windowTitle: selectedWindow.value?.title || '',
+    points: points.value.map(p => ({ x: p.x, y: p.y, interval: p.interval }))
+}));
+
+// Preset handlers
+function onLoadPreset(preset) {
+    currentPresetId.value = preset.id;
+    points.value = preset.points || [];
+    targetTitle.value = preset.windowTitle || '';
+}
+
+async function onPresetSaved(id) {
+    currentPresetId.value = id;
+    await saveSettings();
+}
+
+async function onAutoSaveChanged(val) {
+    autoSave.value = val;
+    await saveSettings();
+}
+
+// Auto-save: debounced watch on points and selectedWindow
+let autoSaveTimer = null;
+watch([points, selectedWindow], () => {
+    if (!autoSave.value || !currentPresetId.value) return;
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        presetManagerRef.value?.autoSavePreset(currentPresetState.value);
+    }, 500);
+}, { deep: true });
+
+// Window selection
+function onWindowSelected(win) {
+    selectedWindow.value = win;
+    targetTitle.value = '';
+}
+
+// Point management
 function addPoint(point) {
     points.value.push(point);
 }
@@ -126,6 +191,7 @@ async function recapturePoint(index) {
     }
 }
 
+// Bot control
 function onClickCountUpdate(data) {
     clickCounts.value = data.counts;
     totalClicks.value = data.total;
@@ -149,9 +215,28 @@ async function stopBot() {
     isRunning.value = false;
 }
 
-onMounted(() => {
-    initDarkMode();
+// Settings persistence
+async function saveSettings() {
+    await window.electronAPI.saveSettings({
+        darkMode: isDark.value,
+        autoSave: autoSave.value,
+        lastPresetId: currentPresetId.value
+    });
+}
+
+// Startup
+onMounted(async () => {
+    const settings = await window.electronAPI.loadSettings();
+    await initDarkMode(settings);
+    autoSave.value = settings.autoSave || false;
+
     window.electronAPI.onClickCountUpdate(onClickCountUpdate);
+
+    // Load last used preset
+    if (settings.lastPresetId) {
+        await presetManagerRef.value?.refreshList();
+        presetManagerRef.value?.selectPresetById(settings.lastPresetId);
+    }
 });
 
 onUnmounted(() => {

@@ -31,7 +31,8 @@ import Select from 'primevue/select';
 import { onMounted, ref, watch } from 'vue';
 
 const props = defineProps({
-    disabled: Boolean
+    disabled: Boolean,
+    targetTitle: String
 });
 
 const emit = defineEmits(['update:selectedWindow']);
@@ -49,9 +50,23 @@ async function refresh() {
     }
 }
 
+function matchByTitle(title) {
+    if (!title || windows.value.length === 0) return;
+    const lower = title.toLowerCase();
+    const match = windows.value.find(w => w.title.toLowerCase().includes(lower));
+    if (match) selected.value = match;
+}
+
 watch(selected, (val) => {
     emit('update:selectedWindow', val);
 });
 
-onMounted(refresh);
+watch(() => props.targetTitle, (title) => {
+    if (title) matchByTitle(title);
+});
+
+onMounted(async () => {
+    await refresh();
+    if (props.targetTitle) matchByTitle(props.targetTitle);
+});
 </script>
