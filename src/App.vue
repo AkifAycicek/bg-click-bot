@@ -18,6 +18,7 @@
             :clickCounts="clickCounts"
             :isRunning="isRunning"
             @remove-point="removePoint"
+            @update-point="updatePoint"
         />
 
         <StatusPanel
@@ -53,6 +54,16 @@ function addPoint(point) {
 
 function removePoint(index) {
     points.value.splice(index, 1);
+}
+
+async function updatePoint({ index, field, value }) {
+    points.value[index] = { ...points.value[index], [field]: value };
+    if (isRunning.value) {
+        await window.electronAPI.updatePoints(
+            selectedWindow.value.hwnd,
+            points.value.map(p => ({ x: p.x, y: p.y, interval: p.interval }))
+        );
+    }
 }
 
 function onClickCountUpdate(data) {

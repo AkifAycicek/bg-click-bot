@@ -4,6 +4,8 @@ const bot = require('../bot');
 
 let mainWindow;
 const activeTimers = [];
+let activeHwnd = null;
+let activeCounts = [];
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -53,28 +55,38 @@ ipcMain.handle('capture-position', async (_event, hwnd) => {
     return pos;
 });
 
-ipcMain.handle('start-clicking', (_event, { hwnd, points }) => {
+function startTimers(hwnd, points) {
     stopAllTimers();
-
-    const counts = new Array(points.length).fill(0);
+    activeHwnd = hwnd;
 
     points.forEach((p, i) => {
         const timer = setInterval(() => {
             bot.backgroundClick(hwnd, p.x, p.y);
-            counts[i]++;
-            const total = counts.reduce((a, b) => a + b, 0);
+            activeCounts[i]++;
+            const total = activeCounts.reduce((a, b) => a + b, 0);
             if (mainWindow && !mainWindow.isDestroyed()) {
-                mainWindow.webContents.send('click-count-update', { counts: [...counts], total });
+                mainWindow.webContents.send('click-count-update', { counts: [...activeCounts], total });
             }
         }, p.interval);
         activeTimers.push(timer);
     });
+}
 
+ipcMain.handle('start-clicking', (_event, { hwnd, points }) => {
+    activeCounts = new Array(points.length).fill(0);
+    startTimers(hwnd, points);
     return { success: true };
 });
 
 ipcMain.handle('stop-clicking', () => {
     stopAllTimers();
+    activeHwnd = null;
+    activeCounts = [];
+    return { success: true };
+});
+
+ipcMain.handle('update-points', (_event, { hwnd, points }) => {
+    startTimers(hwnd, points);
     return { success: true };
 });
 

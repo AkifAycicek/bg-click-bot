@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     capturePosition: (hwnd) => ipcRenderer.invoke('capture-position', hwnd),
     startClicking: (hwnd, points) => ipcRenderer.invoke('start-clicking', { hwnd, points }),
     stopClicking: () => ipcRenderer.invoke('stop-clicking'),
+    updatePoints: (hwnd, points) => ipcRenderer.invoke('update-points', { hwnd, points }),
     onClickCountUpdate: (callback) => {
         ipcRenderer.on('click-count-update', (_event, data) => callback(data));
     },
