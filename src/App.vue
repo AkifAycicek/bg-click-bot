@@ -157,15 +157,17 @@ async function onAutoSaveChanged(val) {
     await saveSettings();
 }
 
-// Auto-save: debounced watch on points and selectedWindow
+// Auto-save: debounced
 let autoSaveTimer = null;
-watch([points, selectedWindow], () => {
+function triggerAutoSave() {
     if (!autoSave.value || !currentPresetId.value) return;
     clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(() => {
         presetManagerRef.value?.autoSavePreset(currentPresetState.value);
     }, 500);
-}, { deep: true });
+}
+
+watch([points, selectedWindow], triggerAutoSave, { deep: true });
 
 // Window selection
 function onWindowSelected(win) {
@@ -176,14 +178,17 @@ function onWindowSelected(win) {
 // Point management
 function addPoint(point) {
     points.value.push(point);
+    triggerAutoSave();
 }
 
 function removePoint(index) {
     points.value.splice(index, 1);
+    triggerAutoSave();
 }
 
 async function updatePoint({ index, field, value }) {
     points.value[index] = { ...points.value[index], [field]: value };
+    triggerAutoSave();
     if (isRunning.value) {
         await window.electronAPI.updatePoints(
             selectedWindow.value.hwnd,
