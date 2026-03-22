@@ -6,7 +6,14 @@ const DIST = path.join(__dirname, 'dist');
 const TRIPLET = 'win32_x64';
 
 // Clean and create dist
-if (fs.existsSync(DIST)) fs.rmSync(DIST, { recursive: true });
+if (fs.existsSync(DIST)) {
+    try {
+        fs.rmSync(DIST, { recursive: true, maxRetries: 3, retryDelay: 1000 });
+    } catch (err) {
+        console.error('Could not clean dist/ — close any running instances and retry.');
+        process.exit(1);
+    }
+}
 fs.mkdirSync(DIST, { recursive: true });
 
 // 1. Build Vue renderer
