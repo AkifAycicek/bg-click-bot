@@ -1,14 +1,15 @@
 {
   "name": "sro_bot",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bot.js",
+    "build": "node build.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "SRO Background Clicker Bot",
   "dependencies": {
     "koffi": "^2.15.2"
   }
