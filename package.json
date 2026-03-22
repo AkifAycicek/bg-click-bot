@@ -1,10 +1,14 @@
 {
   "name": "sro_bot",
   "version": "1.0.0",
-  "main": "bot.js",
+  "main": "app/main.js",
   "scripts": {
     "start": "node bot.js",
-    "test": "node --test bot.test.js",
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "build:renderer": "vite build",
+    "build:electron": "electron-builder --win",
+    "build:app": "npm run build:renderer && npm run build:electron",
+    "test": "node --test tests/bot.test.js",
     "build": "node build.js"
   },
   "keywords": [],
@@ -12,6 +16,23 @@
   "license": "ISC",
   "description": "SRO Background Clicker Bot",
   "dependencies": {
-    "koffi": "^2.15.2"
+    "@primevue/themes": "^4.5.4",
+    "@tailwindcss/postcss": "^4.2.2",
+    "autoprefixer": "^10.4.27",
+    "koffi": "^2.15.2",
+    "postcss": "^8.5.8",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.5.4",
+    "tailwindcss": "^4.2.2",
+    "vue": "^3.5.30"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.5",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^28.3.3",
+    "electron-builder": "^26.8.1",
+    "vite": "^8.0.1",
+    "wait-on": "^9.0.4"
   }
 }

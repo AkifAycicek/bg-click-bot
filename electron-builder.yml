@@ -1,0 +1,14 @@
+appId: com.srobot.clicker
+productName: SRO Bot
+directories:
+  output: dist-electron
+files:
+  - app/**/*
+  - dist-renderer/**/*
+  - bot.js
+  - package.json
+asar: true
+asarUnpack:
+  - "node_modules/koffi/**/*.node"
+win:
+  target: portable
