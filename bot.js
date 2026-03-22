@@ -3,17 +3,19 @@ const readline = require('readline');
 
 // Windows API
 const user32 = koffi.load('user32.dll');
-const kernel32 = koffi.load('kernel32.dll');
+
+// POINT struct for GetCursorPos / ScreenToClient
+const POINT = koffi.struct('POINT', { x: 'int', y: 'int' });
 
 // Window functions
-const FindWindowA = user32.func('FindWindowA', 'int', ['str', 'str']);
-const FindWindowExA = user32.func('FindWindowExA', 'int', ['int', 'int', 'str', 'str']);
 const EnumWindows = user32.func('EnumWindows', 'int', ['pointer', 'int']);
 const GetWindowTextA = user32.func('GetWindowTextA', 'int', ['int', 'uint8 *', 'int']);
 const GetWindowTextLengthA = user32.func('GetWindowTextLengthA', 'int', ['int']);
 const IsWindowVisible = user32.func('IsWindowVisible', 'int', ['int']);
 const PostMessageA = user32.func('PostMessageA', 'int', ['int', 'uint', 'int', 'int']);
-const GetClientRect = user32.func('GetClientRect', 'int', ['int', 'int *']);
+const GetCursorPos = user32.func('GetCursorPos', 'int', [koffi.out(koffi.pointer(POINT))]);
+const ScreenToClient = user32.func('ScreenToClient', 'int', ['int', koffi.inout(koffi.pointer(POINT))]);
+const GetAsyncKeyState = user32.func('GetAsyncKeyState', 'short', ['int']);
 
 // Messages
 const WM_LBUTTONDOWN = 0x0201;
@@ -52,6 +54,33 @@ function backgroundClick(hwnd, x, y) {
     PostMessageA(hwnd, WM_LBUTTONUP, 0, lParam);
 }
 
+function captureMousePosition(hwnd) {
+    return new Promise(async (resolve) => {
+        console.log('\n  Hedef pencerede tiklamak istediginiz noktaya fare ile tiklayin...');
+        console.log('  (Yakalamak icin sol tusa basin)\n');
+
+        const VK_LBUTTON = 0x01;
+        let wasPressed = false;
+
+        const poll = setInterval(() => {
+            const state = GetAsyncKeyState(VK_LBUTTON);
+            const isPressed = (state & 0x8000) !== 0;
+
+            if (isPressed && !wasPressed) {
+                const pt = {};
+                GetCursorPos(pt);
+                const clientPt = { x: pt.x, y: pt.y };
+                ScreenToClient(hwnd, clientPt);
+
+                clearInterval(poll);
+                console.log(`  Yakalanan koordinat: (${clientPt.x}, ${clientPt.y})`);
+                resolve({ x: clientPt.x, y: clientPt.y });
+            }
+            wasPressed = isPressed;
+        }, 50);
+    });
+}
+
 function askQuestion(rl, question) {
     return new Promise(resolve => rl.question(question, resolve));
 }
@@ -82,28 +111,48 @@ async function main() {
     console.log(`\nSecilen: "${selected.title}" (hwnd: ${selected.hwnd})`);
 
     // 2. Get click coordinates
-    const xStr = await askQuestion(rl, '\nX koordinati (pencere icindeki): ');
-    const yStr = await askQuestion(rl, 'Y koordinati (pencere icindeki): ');
-    const x = parseInt(xStr);
-    const y = parseInt(yStr);
+    console.log('\nKoordinat secimi:');
+    console.log('  [1] Fare ile tikla (pencerede tiklayin, koordinat yakalansin)');
+    console.log('  [2] Manuel gir (X, Y degerlerini yaz)');
 
-    if (isNaN(x) || isNaN(y)) {
-        console.log('Gecersiz koordinat!');
+    const coordMethod = await askQuestion(rl, '\nSecim (1/2): ');
+
+    let x, y;
+
+    if (coordMethod.trim() === '1') {
         rl.close();
-        return;
+        const pos = await captureMousePosition(selected.hwnd);
+        x = pos.x;
+        y = pos.y;
+    } else {
+        const xStr = await askQuestion(rl, '\nX koordinati (pencere icindeki): ');
+        const yStr = await askQuestion(rl, 'Y koordinati (pencere icindeki): ');
+        x = parseInt(xStr);
+        y = parseInt(yStr);
+
+        if (isNaN(x) || isNaN(y)) {
+            console.log('Gecersiz koordinat!');
+            rl.close();
+            return;
+        }
     }
 
-    // 3. Get interval
-    const intervalStr = await askQuestion(rl, '\nTiklama araligi (ms): ');
+    // 3. Get interval - reopen readline if it was closed for mouse capture
+    let rl2 = rl;
+    if (coordMethod.trim() === '1') {
+        rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
+    }
+
+    const intervalStr = await askQuestion(rl2, '\nTiklama araligi (ms): ');
     const interval = parseInt(intervalStr);
 
     if (isNaN(interval) || interval < 100) {
         console.log('Gecersiz aralik! (min 100ms)');
-        rl.close();
+        rl2.close();
         return;
     }
 
-    rl.close();
+    rl2.close();
 
     console.log(`\nBot baslatildi!`);
     console.log(`  Pencere: ${selected.title}`);
