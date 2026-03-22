@@ -7,7 +7,7 @@
                     <WindowSelector
                         :disabled="instance.isRunning.value"
                         :targetTitle="instance.targetTitle.value"
-                        @update:selectedWindow="instance.onWindowSelected($event)"
+                        @update:selectedWindow="onWindowSelected"
                     />
                     <AddPointForm
                         :selectedHwnd="instance.selectedWindow.value?.hwnd"
@@ -143,6 +143,11 @@ async function clearHotkey() {
 
 function triggerAutoSave() {
     autoSaveTab(props.tabId);
+}
+
+function onWindowSelected(win) {
+    props.instance.onWindowSelected(win);
+    triggerAutoSave();
 }
 
 function onAddPoint(point) {

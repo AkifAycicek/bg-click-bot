@@ -16,7 +16,7 @@ export function useBotInstance(tabId) {
 
     const currentPresetState = computed(() => ({
         windowTitle: selectedWindow.value?.title || '',
-        points: points.value.map(p => ({ x: p.x, y: p.y, interval: p.interval }))
+        points: points.value.map(p => ({ name: p.name || null, x: p.x, y: p.y, interval: p.interval }))
     }));
 
     function onWindowSelected(win) {
