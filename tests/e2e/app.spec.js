@@ -66,25 +66,26 @@ test.describe('Background Clicker Bot Electron App', () => {
     });
 
     test('should show window selector in tab', async () => {
-        const combobox = await page.$('[role="combobox"]');
-        expect(combobox).toBeTruthy();
+        const selector = await page.$('text=Pencere secmek icin tiklayin...');
+        expect(selector).toBeTruthy();
     });
 
     test('should add points and verify table in tab', async () => {
-        // Select a window
-        const combobox = await page.$('[role="combobox"]');
-        await combobox.click();
-        await page.waitForTimeout(500);
-
-        const filterInput = await page.$('input[role="searchbox"]');
-        if (filterInput) {
-            await filterInput.fill('');
-            await page.waitForTimeout(300);
+        // Open window picker dialog
+        const selectorTrigger = await page.$('text=Pencere secmek icin tiklayin...');
+        if (!selectorTrigger) {
+            // Window already selected from previous run, click the selector area
+            const selectorArea = await page.$('.pi-desktop');
+            if (selectorArea) await selectorArea.click();
+        } else {
+            await selectorTrigger.click();
         }
+        await page.waitForTimeout(1000);
 
-        const firstOption = await page.$('[role="option"]');
-        if (firstOption) {
-            await firstOption.click();
+        // Pick the first window card in the grid
+        const windowCards = await page.$$('[role="dialog"] .cursor-pointer');
+        if (windowCards.length > 0) {
+            await windowCards[0].click();
             await page.waitForTimeout(300);
         }
 

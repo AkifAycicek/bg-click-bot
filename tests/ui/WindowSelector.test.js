@@ -8,9 +8,9 @@ const mountWith = (props = {}) =>
     });
 
 describe('WindowSelector', () => {
-    it('renders select placeholder', () => {
+    it('renders select trigger', () => {
         const wrapper = mountWith();
-        expect(wrapper.text()).toContain('Pencere secin...');
+        expect(wrapper.text()).toContain('Pencere secmek icin tiklayin...');
     });
 
     it('renders refresh button', () => {
