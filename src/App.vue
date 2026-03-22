@@ -24,10 +24,8 @@
                 <div>
                     <h3 class="text-sm font-semibold mb-3">Profiller</h3>
                     <PresetManager
-                        ref="presetManagerRef"
                         :currentState="currentPresetState"
                         :hasState="points.length > 0"
-                        :autoSave="autoSave"
                         @load-preset="onLoadPreset"
                         @auto-save-changed="onAutoSaveChanged"
                         @preset-saved="onPresetSaved"
@@ -41,7 +39,6 @@
             <template #content>
                 <div class="flex flex-col gap-4">
                     <WindowSelector
-                        ref="windowSelectorRef"
                         :disabled="isRunning"
                         :targetTitle="targetTitle"
                         @update:selectedWindow="onWindowSelected"
@@ -97,10 +94,10 @@ import WindowSelector from './components/WindowSelector.vue';
 import AddPointForm from './components/AddPointForm.vue';
 import ClickPointsTable from './components/ClickPointsTable.vue';
 import StatusPanel from './components/StatusPanel.vue';
+import { usePresets } from './composables/usePresets';
 
-// Refs
-const presetManagerRef = ref(null);
-const windowSelectorRef = ref(null);
+const { selectedPresetId, autoSave, savePreset, refreshList, loadPreset } = usePresets();
+
 const showSettings = ref(false);
 
 // Dark mode
@@ -108,7 +105,7 @@ const isDark = ref(false);
 
 async function toggleDark() {
     document.documentElement.classList.toggle('dark-mode', isDark.value);
-    await saveSettings();
+    await persistSettings();
 }
 
 async function initDarkMode(settings) {
@@ -128,8 +125,6 @@ const isRunning = ref(false);
 const clickCounts = ref([]);
 const totalClicks = ref(0);
 const recapturing = ref(false);
-const autoSave = ref(false);
-const currentPresetId = ref(null);
 
 const canStart = computed(() =>
     selectedWindow.value && points.value.length > 0 && !isRunning.value
@@ -142,28 +137,25 @@ const currentPresetState = computed(() => ({
 
 // Preset handlers
 function onLoadPreset(preset) {
-    currentPresetId.value = preset.id;
     points.value = preset.points || [];
     targetTitle.value = preset.windowTitle || '';
 }
 
-async function onPresetSaved(id) {
-    currentPresetId.value = id;
-    await saveSettings();
+async function onPresetSaved() {
+    await persistSettings();
 }
 
-async function onAutoSaveChanged(val) {
-    autoSave.value = val;
-    await saveSettings();
+async function onAutoSaveChanged() {
+    await persistSettings();
 }
 
 // Auto-save: debounced
 let autoSaveTimer = null;
 function triggerAutoSave() {
-    if (!autoSave.value || !currentPresetId.value) return;
+    if (!autoSave.value || !selectedPresetId.value) return;
     clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(() => {
-        presetManagerRef.value?.autoSavePreset(currentPresetState.value);
+        savePreset(currentPresetState.value);
     }, 500);
 }
 
@@ -203,6 +195,7 @@ async function recapturePoint(index) {
     try {
         const pos = await window.electronAPI.capturePosition(selectedWindow.value.hwnd);
         points.value[index] = { ...points.value[index], x: pos.x, y: pos.y };
+        triggerAutoSave();
     } finally {
         recapturing.value = false;
     }
@@ -233,11 +226,11 @@ async function stopBot() {
 }
 
 // Settings persistence
-async function saveSettings() {
+async function persistSettings() {
     await window.electronAPI.saveSettings({
         darkMode: isDark.value,
         autoSave: autoSave.value,
-        lastPresetId: currentPresetId.value
+        lastPresetId: selectedPresetId.value
     });
 }
 
@@ -251,8 +244,9 @@ onMounted(async () => {
 
     // Load last used preset
     if (settings.lastPresetId) {
-        await presetManagerRef.value?.refreshList();
-        presetManagerRef.value?.selectPresetById(settings.lastPresetId);
+        await refreshList();
+        const preset = await loadPreset(settings.lastPresetId);
+        if (preset) onLoadPreset(preset);
     }
 });
 

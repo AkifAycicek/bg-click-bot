@@ -6,11 +6,13 @@
                     v-model="selectedPreset"
                     :options="presetList"
                     optionLabel="name"
+                    dataKey="id"
                     placeholder="Profil secin..."
                     class="w-full"
                     filter
                     autoFilterFocus
                     filterPlaceholder="Profil ara..."
+                    @change="onSelectChange"
                 />
             </div>
             <Button
@@ -78,7 +80,7 @@
 
             <div class="ml-auto flex items-center gap-2">
                 <label class="text-xs">Oto-kaydet</label>
-                <ToggleSwitch v-model="autoSaveLocal" size="small" @change="$emit('auto-save-changed', autoSaveLocal)" />
+                <ToggleSwitch v-model="autoSave" size="small" @change="$emit('auto-save-changed', autoSave)" />
             </div>
         </div>
 
@@ -118,24 +120,27 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref } from 'vue';
 import Select from 'primevue/select';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
+import { usePresets } from '../composables/usePresets';
 
 const props = defineProps({
     currentState: Object,
-    hasState: Boolean,
-    autoSave: Boolean
+    hasState: Boolean
 });
 
 const emit = defineEmits(['load-preset', 'auto-save-changed', 'preset-saved']);
 
-const presetList = ref([]);
-const selectedPreset = ref(null);
-const autoSaveLocal = ref(false);
+const {
+    presetList, selectedPreset, autoSave,
+    refreshList, loadPreset, savePreset, createPreset,
+    deletePreset, renamePreset, duplicatePreset,
+    importPreset, exportPreset
+} = usePresets();
 
 const showNewDialog = ref(false);
 const showRenameDialog = ref(false);
@@ -144,32 +149,18 @@ const newName = ref('');
 const renameName = ref('');
 const duplicateName = ref('');
 
-async function refreshList() {
-    presetList.value = await window.electronAPI.listPresets();
-}
-
-watch(() => props.autoSave, (val) => {
-    autoSaveLocal.value = val;
-}, { immediate: true });
-
-watch(selectedPreset, async (preset) => {
+async function onSelectChange(event) {
+    const preset = event.value;
     if (!preset) return;
-    const full = await window.electronAPI.loadPreset(preset.id);
-    if (full) {
-        emit('load-preset', { ...full, id: preset.id });
-    }
-});
+    const full = await loadPreset(preset.id);
+    if (full) emit('load-preset', full);
+}
 
 async function onSave() {
     if (!props.currentState) return;
-
     if (selectedPreset.value) {
-        const result = await window.electronAPI.savePreset({
-            id: selectedPreset.value.id,
-            name: selectedPreset.value.name,
-            ...props.currentState
-        });
-        emit('preset-saved', result.id);
+        await savePreset(props.currentState);
+        emit('preset-saved', selectedPreset.value.id);
     } else {
         showNewDialog.value = true;
     }
@@ -178,75 +169,38 @@ async function onSave() {
 
 async function onCreate() {
     if (!newName.value.trim()) return;
-    const result = await window.electronAPI.savePreset({
-        name: newName.value.trim(),
-        ...props.currentState
-    });
+    const result = await createPreset(newName.value.trim(), props.currentState);
     showNewDialog.value = false;
     newName.value = '';
-    await refreshList();
-    selectedPreset.value = presetList.value.find(p => p.id === result.id) || null;
     emit('preset-saved', result.id);
 }
 
 async function onDelete() {
-    if (!selectedPreset.value) return;
-    await window.electronAPI.deletePreset(selectedPreset.value.id);
-    selectedPreset.value = null;
-    await refreshList();
+    await deletePreset();
 }
 
 async function onRename() {
-    if (!selectedPreset.value || !renameName.value.trim()) return;
-    const { id } = await window.electronAPI.renamePreset(selectedPreset.value.id, renameName.value.trim());
+    if (!renameName.value.trim()) return;
+    await renamePreset(renameName.value.trim());
     showRenameDialog.value = false;
     renameName.value = '';
-    await refreshList();
-    selectedPreset.value = presetList.value.find(p => p.id === id) || null;
 }
 
 async function onDuplicate() {
-    if (!selectedPreset.value || !duplicateName.value.trim()) return;
-    const { id } = await window.electronAPI.duplicatePreset(selectedPreset.value.id, duplicateName.value.trim());
+    if (!duplicateName.value.trim()) return;
+    await duplicatePreset(duplicateName.value.trim());
     showDuplicateDialog.value = false;
     duplicateName.value = '';
-    await refreshList();
-    selectedPreset.value = presetList.value.find(p => p.id === id) || null;
 }
 
 async function onImport() {
-    const result = await window.electronAPI.importPreset();
-    if (result && !result.error) {
-        await refreshList();
-        selectedPreset.value = presetList.value.find(p => p.id === result.id) || null;
-    }
+    await importPreset();
 }
 
 async function onExport() {
-    if (!selectedPreset.value) return;
-    await window.electronAPI.exportPreset(selectedPreset.value.id);
+    await exportPreset();
 }
 
-// Public method for auto-save from parent
-async function autoSavePreset(state) {
-    if (!selectedPreset.value) return;
-    await window.electronAPI.savePreset({
-        id: selectedPreset.value.id,
-        name: selectedPreset.value.name,
-        ...state
-    });
-}
-
-function getSelectedPresetId() {
-    return selectedPreset.value?.id || null;
-}
-
-function selectPresetById(id) {
-    const found = presetList.value.find(p => p.id === id);
-    if (found) selectedPreset.value = found;
-}
-
-defineExpose({ refreshList, autoSavePreset, getSelectedPresetId, selectPresetById });
-
-onMounted(refreshList);
+// Ensure list is fresh when component mounts
+refreshList();
 </script>
