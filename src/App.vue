@@ -17,8 +17,10 @@
             :points="points"
             :clickCounts="clickCounts"
             :isRunning="isRunning"
+            :capturing="recapturing"
             @remove-point="removePoint"
             @update-point="updatePoint"
+            @recapture-point="recapturePoint"
         />
 
         <StatusPanel
@@ -43,6 +45,7 @@ const points = ref([]);
 const isRunning = ref(false);
 const clickCounts = ref([]);
 const totalClicks = ref(0);
+const recapturing = ref(false);
 
 const canStart = computed(() =>
     selectedWindow.value && points.value.length > 0 && !isRunning.value
@@ -63,6 +66,17 @@ async function updatePoint({ index, field, value }) {
             selectedWindow.value.hwnd,
             points.value.map(p => ({ x: p.x, y: p.y, interval: p.interval }))
         );
+    }
+}
+
+async function recapturePoint(index) {
+    if (!selectedWindow.value) return;
+    recapturing.value = true;
+    try {
+        const pos = await window.electronAPI.capturePosition(selectedWindow.value.hwnd);
+        points.value[index] = { ...points.value[index], x: pos.x, y: pos.y };
+    } finally {
+        recapturing.value = false;
     }
 }
 
