@@ -10,6 +10,8 @@ jobs:
   test:
     runs-on: windows-latest
     timeout-minutes: 10
+    # Skip on release-please commits (version bumps)
+    if: "!contains(github.event.head_commit.message, 'chore(main): release')"
     strategy:
       matrix:
         node-version: [22]
