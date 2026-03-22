@@ -13,7 +13,7 @@ describe('App', () => {
     it('renders all child components', async () => {
         const wrapper = mountApp();
         await flushPromises();
-        // Should contain key UI text from each component
+        expect(wrapper.text()).toContain('Profiller');          // PresetManager card
         expect(wrapper.text()).toContain('Ayarlar');            // Card title
         expect(wrapper.text()).toContain('Yeni Nokta Ekle');   // AddPointForm
         expect(wrapper.text()).toContain('Tiklama Noktalari'); // ClickPointsTable card

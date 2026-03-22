@@ -32,5 +32,25 @@ window.electronAPI = {
     stopClicking: vi.fn().mockResolvedValue({ success: true }),
     updatePoints: vi.fn().mockResolvedValue({ success: true }),
     onClickCountUpdate: vi.fn(),
-    removeClickCountListener: vi.fn()
+    removeClickCountListener: vi.fn(),
+
+    // Presets
+    listPresets: vi.fn().mockResolvedValue([
+        { id: 'farm-spot', name: 'Farm Spot', windowTitle: 'Game Client', pointCount: 2, updatedAt: '2026-03-22T12:00:00Z' },
+        { id: 'boss-hunt', name: 'Boss Hunt', windowTitle: 'Game Client 2', pointCount: 1, updatedAt: '2026-03-22T13:00:00Z' }
+    ]),
+    loadPreset: vi.fn().mockResolvedValue({
+        version: 1, name: 'Farm Spot', windowTitle: 'Game Client',
+        points: [{ x: 100, y: 200, interval: 1000 }]
+    }),
+    savePreset: vi.fn().mockResolvedValue({ id: 'farm-spot' }),
+    deletePreset: vi.fn().mockResolvedValue({ success: true }),
+    renamePreset: vi.fn().mockResolvedValue({ id: 'new-name' }),
+    duplicatePreset: vi.fn().mockResolvedValue({ id: 'copy' }),
+    exportPreset: vi.fn().mockResolvedValue({ path: '/tmp/test.json' }),
+    importPreset: vi.fn().mockResolvedValue({ id: 'imported', name: 'Imported' }),
+
+    // Settings
+    loadSettings: vi.fn().mockResolvedValue({ darkMode: false, autoSave: false, lastPresetId: null }),
+    saveSettings: vi.fn().mockResolvedValue({ success: true })
 };
