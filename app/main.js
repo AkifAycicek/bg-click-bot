@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, desktopCapturer } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const bot = require('../bot');
@@ -80,29 +80,12 @@ function startInstance(tabId, hwnd, points) {
 
 // IPC Handlers
 
-ipcMain.handle('get-windows', async () => {
+ipcMain.handle('get-windows', () => {
     const windows = bot.getVisibleWindows();
-
-    // Capture thumbnails via desktopCapturer
-    try {
-        const sources = await desktopCapturer.getSources({
-            types: ['window'],
-            thumbnailSize: { width: 160, height: 100 },
-            fetchWindowIcons: false
-        });
-
-        const sourceMap = new Map();
-        for (const source of sources) {
-            sourceMap.set(source.name, source.thumbnail.toDataURL());
-        }
-
-        return windows.map(w => ({
-            ...w,
-            thumbnail: sourceMap.get(w.title) || null
-        }));
-    } catch {
-        return windows;
-    }
+    return windows.map(w => ({
+        ...w,
+        thumbnail: bot.captureWindowThumbnail(w.hwnd)
+    }));
 });
 
 ipcMain.handle('capture-position', async (_event, hwnd) => {

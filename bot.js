@@ -22,6 +22,43 @@ const GetAsyncKeyState = user32.func('GetAsyncKeyState', 'short', ['int']);
 const SetForegroundWindow = user32.func('SetForegroundWindow', 'int', ['int']);
 const ShowWindow = user32.func('ShowWindow', 'int', ['int', 'int']);
 const IsIconic = user32.func('IsIconic', 'int', ['int']);
+const GetWindowLongA = user32.func('GetWindowLongA', 'long', ['int', 'int']);
+const GetWindow = user32.func('GetWindow', 'int', ['int', 'uint']);
+
+const GWL_EXSTYLE = -20;
+const WS_EX_TOOLWINDOW = 0x00000080;
+const WS_EX_APPWINDOW = 0x00040000;
+const WS_EX_NOACTIVATE = 0x08000000;
+const GW_OWNER = 4;
+
+const dwmapi = koffi.load('dwmapi.dll');
+const DwmGetWindowAttribute = dwmapi.func('DwmGetWindowAttribute', 'long', ['int', 'uint', 'uint *', 'uint']);
+const DWMWA_CLOAKED = 14;
+
+// GDI32 for window capture
+const gdi32 = koffi.load('gdi32.dll');
+const RECT = koffi.struct('RECT', { left: 'int', top: 'int', right: 'int', bottom: 'int' });
+const BITMAPINFOHEADER = koffi.struct('BITMAPINFOHEADER', {
+    biSize: 'uint', biWidth: 'int', biHeight: 'int', biPlanes: 'ushort',
+    biBitCount: 'ushort', biCompression: 'uint', biSizeImage: 'uint',
+    biXPelsPerMeter: 'int', biYPelsPerMeter: 'int', biClrUsed: 'uint', biClrImportant: 'uint'
+});
+const GetClientRect = user32.func('GetClientRect', 'int', ['int', koffi.out(koffi.pointer(RECT))]);
+const GetDC = user32.func('GetDC', 'int', ['int']);
+const ReleaseDC = user32.func('ReleaseDC', 'int', ['int', 'int']);
+const CreateCompatibleDC = gdi32.func('CreateCompatibleDC', 'int', ['int']);
+const CreateCompatibleBitmap = gdi32.func('CreateCompatibleBitmap', 'int', ['int', 'int', 'int']);
+const SelectObject = gdi32.func('SelectObject', 'int', ['int', 'int']);
+const DeleteObject = gdi32.func('DeleteObject', 'int', ['int']);
+const DeleteDC = gdi32.func('DeleteDC', 'int', ['int']);
+const GetDIBits = gdi32.func('GetDIBits', 'int', ['int', 'int', 'uint', 'uint', 'uint8 *', koffi.inout(koffi.pointer(BITMAPINFOHEADER)), 'uint']);
+const PrintWindow = user32.func('PrintWindow', 'int', ['int', 'int', 'uint']);
+const StretchBlt = gdi32.func('StretchBlt', 'int', ['int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'uint']);
+const SetStretchBltMode = gdi32.func('SetStretchBltMode', 'int', ['int', 'int']);
+const PW_RENDERFULLCONTENT = 0x00000002;
+const SRCCOPY = 0x00CC0020;
+const HALFTONE = 4;
+const BI_RGB = 0;
 const GetForegroundWindow = user32.func('GetForegroundWindow', 'int', []);
 const SetWindowPos = user32.func('SetWindowPos', 'int', ['int', 'int', 'int', 'int', 'int', 'int', 'uint']);
 const SystemParametersInfoA = user32.func('SystemParametersInfoA', 'int', ['uint', 'uint', 'uint *', 'uint']);
@@ -65,6 +102,85 @@ function focusWindow(hwnd) {
     }
 }
 
+function captureWindowThumbnail(hwnd, thumbWidth = 160, thumbHeight = 100) {
+    try {
+        // Get window size
+        const rect = {};
+        GetClientRect(hwnd, rect);
+        const width = rect.right - rect.left;
+        const height = rect.bottom - rect.top;
+        if (width <= 0 || height <= 0) return null;
+
+        // Create DC and bitmap at full window size
+        const screenDC = GetDC(0);
+        const memDC = CreateCompatibleDC(screenDC);
+        const bitmap = CreateCompatibleBitmap(screenDC, width, height);
+        const oldBitmap = SelectObject(memDC, bitmap);
+
+        // Capture window content (works even when minimized)
+        PrintWindow(hwnd, memDC, PW_RENDERFULLCONTENT);
+
+        // Create thumbnail DC and bitmap
+        const thumbDC = CreateCompatibleDC(screenDC);
+        const thumbBitmap = CreateCompatibleBitmap(screenDC, thumbWidth, thumbHeight);
+        const oldThumbBitmap = SelectObject(thumbDC, thumbBitmap);
+
+        // Scale down
+        SetStretchBltMode(thumbDC, HALFTONE);
+        StretchBlt(thumbDC, 0, 0, thumbWidth, thumbHeight, memDC, 0, 0, width, height, SRCCOPY);
+
+        // Read pixels from thumbnail
+        const bmi = {
+            biSize: 40, biWidth: thumbWidth, biHeight: -thumbHeight, biPlanes: 1,
+            biBitCount: 32, biCompression: BI_RGB, biSizeImage: 0,
+            biXPelsPerMeter: 0, biYPelsPerMeter: 0, biClrUsed: 0, biClrImportant: 0
+        };
+        const pixelData = Buffer.alloc(thumbWidth * thumbHeight * 4);
+        GetDIBits(thumbDC, thumbBitmap, 0, thumbHeight, pixelData, bmi, 0);
+
+        // Cleanup GDI
+        SelectObject(memDC, oldBitmap);
+        DeleteObject(bitmap);
+        DeleteDC(memDC);
+        SelectObject(thumbDC, oldThumbBitmap);
+        DeleteObject(thumbBitmap);
+        DeleteDC(thumbDC);
+        ReleaseDC(0, screenDC);
+
+        // Convert BGRA to BMP file buffer
+        const fileHeaderSize = 14;
+        const infoHeaderSize = 40;
+        const dataSize = thumbWidth * thumbHeight * 4;
+        const fileSize = fileHeaderSize + infoHeaderSize + dataSize;
+        const bmp = Buffer.alloc(fileSize);
+
+        // BMP file header
+        bmp.write('BM', 0);
+        bmp.writeUInt32LE(fileSize, 2);
+        bmp.writeUInt32LE(0, 6);
+        bmp.writeUInt32LE(fileHeaderSize + infoHeaderSize, 10);
+
+        // BMP info header (top-down)
+        bmp.writeUInt32LE(infoHeaderSize, 14);
+        bmp.writeInt32LE(thumbWidth, 18);
+        bmp.writeInt32LE(thumbHeight, 22); // positive = bottom-up
+        bmp.writeUInt16LE(1, 26);
+        bmp.writeUInt16LE(32, 28);
+        bmp.writeUInt32LE(0, 30);
+        bmp.writeUInt32LE(dataSize, 34);
+
+        // Flip rows (GetDIBits with negative height gives top-down, BMP needs bottom-up)
+        const rowSize = thumbWidth * 4;
+        for (let y = 0; y < thumbHeight; y++) {
+            pixelData.copy(bmp, fileHeaderSize + infoHeaderSize + (thumbHeight - 1 - y) * rowSize, y * rowSize, (y + 1) * rowSize);
+        }
+
+        return 'data:image/bmp;base64,' + bmp.toString('base64');
+    } catch {
+        return null;
+    }
+}
+
 // Messages
 const WM_LBUTTONDOWN = 0x0201;
 const WM_LBUTTONUP = 0x0202;
@@ -74,10 +190,31 @@ function makeLParam(x, y) {
     return (y << 16) | (x & 0xFFFF);
 }
 
+function isAltTabWindow(hwnd) {
+    const exStyle = GetWindowLongA(hwnd, GWL_EXSTYLE);
+
+    // Skip tool windows (unless they have WS_EX_APPWINDOW)
+    if ((exStyle & WS_EX_TOOLWINDOW) && !(exStyle & WS_EX_APPWINDOW)) return false;
+
+    // Skip noactivate windows
+    if (exStyle & WS_EX_NOACTIVATE) return false;
+
+    // Skip owned windows without WS_EX_APPWINDOW (child dialogs etc.)
+    const owner = GetWindow(hwnd, GW_OWNER);
+    if (owner && !(exStyle & WS_EX_APPWINDOW)) return false;
+
+    // Skip cloaked UWP windows (Notification Center, Settings, Lock Screen, etc.)
+    const cloaked = Buffer.alloc(4);
+    DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, cloaked, 4);
+    if (cloaked.readUInt32LE(0) !== 0) return false;
+
+    return true;
+}
+
 function getVisibleWindows() {
     const windows = [];
     const cb = koffi.register((hwnd, _lParam) => {
-        if (IsWindowVisible(hwnd)) {
+        if (IsWindowVisible(hwnd) && isAltTabWindow(hwnd)) {
             const len = GetWindowTextLengthA(hwnd);
             if (len > 0) {
                 const buf = Buffer.alloc(len + 1);
@@ -252,7 +389,8 @@ module.exports = {
     WM_LBUTTONDOWN,
     WM_LBUTTONUP,
     MK_LBUTTON,
-    focusWindow
+    focusWindow,
+    captureWindowThumbnail
 };
 
 // Run only when executed directly
