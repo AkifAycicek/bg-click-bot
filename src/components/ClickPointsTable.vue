@@ -7,6 +7,17 @@
         @cell-edit-complete="onCellEdit"
     >
         <Column field="index" header="#" style="width: 3rem" />
+        <Column field="name" header="Isim">
+            <template #body="{ data }">
+                <span :class="isRunning ? '' : 'editable-cell'">
+                    {{ data.name || '-' }}
+                    <i v-if="!isRunning" class="pi pi-pencil editable-icon" />
+                </span>
+            </template>
+            <template #editor="{ data }">
+                <InputText v-model="data.name" class="w-full" />
+            </template>
+        </Column>
         <Column field="x" header="X">
             <template #body="{ data }">
                 <span :class="isRunning ? '' : 'editable-cell'">
@@ -77,6 +88,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
+import InputText from 'primevue/inputtext';
 
 const props = defineProps({
     points: Array,
@@ -90,6 +102,7 @@ const emit = defineEmits(['remove-point', 'update-point', 'recapture-point']);
 const tableData = computed(() =>
     props.points.map((p, i) => ({
         index: i + 1,
+        name: p.name || '',
         x: p.x,
         y: p.y,
         interval: p.interval,

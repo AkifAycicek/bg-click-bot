@@ -4,6 +4,13 @@
 
         <div class="flex items-end gap-2 mb-3">
             <div class="flex-1">
+                <label class="block text-xs mb-1">Isim</label>
+                <InputText v-model="name" placeholder="orn: Buff, HP potion..." class="w-full" :disabled="disabled" />
+            </div>
+        </div>
+
+        <div class="flex items-end gap-2 mb-3">
+            <div class="flex-1">
                 <label class="block text-xs mb-1">X</label>
                 <InputNumber v-model="x" class="w-full" :disabled="disabled" />
             </div>
@@ -41,6 +48,7 @@
 <script setup>
 import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
+import InputText from 'primevue/inputtext';
 import { ref } from 'vue';
 
 const props = defineProps({
@@ -50,6 +58,7 @@ const props = defineProps({
 
 const emit = defineEmits(['add-point']);
 
+const name = ref('');
 const x = ref(null);
 const y = ref(null);
 const interval = ref(1000);
@@ -69,7 +78,8 @@ async function capture() {
 
 function addPoint() {
     if (x.value == null || y.value == null || !interval.value) return;
-    emit('add-point', { x: x.value, y: y.value, interval: interval.value });
+    emit('add-point', { name: name.value.trim() || null, x: x.value, y: y.value, interval: interval.value });
+    name.value = '';
     x.value = null;
     y.value = null;
 }
