@@ -1,9 +1,11 @@
 import { vi } from 'vitest';
 import { config } from '@vue/test-utils';
 import PrimeVue from 'primevue/config';
+import ToastService from 'primevue/toastservice';
+import ConfirmationService from 'primevue/confirmationservice';
 
-// Register PrimeVue and tooltip directive globally for all tests
-config.global.plugins = [PrimeVue];
+// Register PrimeVue, ToastService, ConfirmationService globally
+config.global.plugins = [PrimeVue, ToastService, ConfirmationService];
 config.global.directives = {
     tooltip: { mounted: () => {}, updated: () => {} }
 };

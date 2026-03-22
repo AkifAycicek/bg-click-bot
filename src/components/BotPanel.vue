@@ -45,32 +45,32 @@
                             :isRunning="instance.isRunning.value"
                             :canStart="instance.canStart.value"
                             :totalClicks="instance.totalClicks.value"
-                            @start="instance.startBot()"
-                            @stop="instance.stopBot()"
+                            @start="onStart"
+                            @stop="onStop"
                         />
                     </div>
                     <div class="flex flex-col justify-center gap-2">
                         <label class="text-xs text-surface-500">Kisayol:</label>
-                        <InputText
-                            :modelValue="hotkeyDisplay"
-                            placeholder="Tus kombinasyonu"
-                            class="flex-1 min-w-32"
-                            size="small"
-                            readonly
-                            @keydown.prevent="onHotkeyCapture"
-                            @focus="hotkeyCapturing = true"
-                            @blur="hotkeyCapturing = false"
-                            :class="{ 'ring-2 ring-primary-300': hotkeyCapturing }"
-                        />
-                        <Button
-                            v-if="hotkeyDisplay"
-                            icon="pi pi-times"
-                            severity="secondary"
-                            text
-                            size="small"
-                            @click="clearHotkey"
-                            v-tooltip.top="'Kisayolu kaldir'"
-                        />
+                        <InputGroup>
+                            <InputText
+                                :modelValue="hotkeyDisplay"
+                                placeholder="Tus kombinasyonu"
+                                size="small"
+                                readonly
+                                @keydown.prevent="onHotkeyCapture"
+                                @focus="hotkeyCapturing = true"
+                                @blur="hotkeyCapturing = false"
+                                :class="{ 'ring-2 ring-primary-300': hotkeyCapturing }"
+                            />
+                            <Button
+                                v-if="hotkeyDisplay"
+                                icon="pi pi-times"
+                                severity="secondary"
+                                size="small"
+                                @click="clearHotkey"
+                                v-tooltip.top="'Kisayolu kaldir'"
+                            />
+                        </InputGroup>
                     </div>
                 </div>
             </template>
@@ -81,7 +81,9 @@
 <script setup>
 import Button from 'primevue/button';
 import Card from 'primevue/card';
+import InputGroup from 'primevue/inputgroup';
 import InputText from 'primevue/inputtext';
+import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
 import { useTabManager } from '../composables/useTabManager';
 import AddPointForm from './AddPointForm.vue';
@@ -95,6 +97,7 @@ const props = defineProps({
 });
 
 const { autoSaveTab } = useTabManager();
+const toast = useToast();
 
 // Hotkey
 const hotkeyDisplay = ref('');
@@ -167,5 +170,15 @@ function onUpdatePoint(data) {
 
 function onRecapturePoint(index) {
     props.instance.recapturePoint(index).then(triggerAutoSave);
+}
+
+async function onStart() {
+    await props.instance.startBot();
+    toast.add({ severity: 'success', summary: 'Bot baslatildi', life: 2000 });
+}
+
+async function onStop() {
+    await props.instance.stopBot();
+    toast.add({ severity: 'warn', summary: 'Bot durduruldu', life: 2000 });
 }
 </script>

@@ -1,15 +1,20 @@
 <template>
-    <div v-if="tabs.length === 0" class="text-center text-surface-400 py-12">
-        <i class="pi pi-inbox text-4xl mb-3 block" />
-        <p class="text-sm">Henuz acik sekme yok.</p>
-        <p class="text-xs mt-1">Ayarlardan bir profil acin veya yeni sekme ekleyin.</p>
-        <Button
-            label="Yeni Sekme"
-            icon="pi pi-plus"
-            size="small"
-            class="mt-4"
-            @click="onNewTab"
-        />
+    <div v-if="tabs.length === 0" class="text-center py-16">
+        <i class="pi pi-inbox text-5xl mb-4 block text-surface-300" />
+        <p class="text-lg font-medium text-surface-500 mb-2">Baslamaya hazir misiniz?</p>
+        <p class="text-sm text-surface-400 mb-6">Yeni bir sekme olusturun veya ayarlardan mevcut bir profili acin.</p>
+        <div class="flex justify-center gap-3 mb-8">
+            <Button
+                label="Yeni Sekme"
+                icon="pi pi-plus"
+                @click="onNewTab"
+            />
+        </div>
+        <div class="flex flex-col items-center gap-2 text-xs text-surface-400">
+            <div class="flex items-center gap-2"><span class="bg-primary-100 text-primary-700 rounded-full w-5 h-5 inline-flex items-center justify-center text-xs font-bold">1</span> Hedef pencereyi secin</div>
+            <div class="flex items-center gap-2"><span class="bg-primary-100 text-primary-700 rounded-full w-5 h-5 inline-flex items-center justify-center text-xs font-bold">2</span> Tiklama noktalarini ekleyin</div>
+            <div class="flex items-center gap-2"><span class="bg-primary-100 text-primary-700 rounded-full w-5 h-5 inline-flex items-center justify-center text-xs font-bold">3</span> Baslat'a basin</div>
+        </div>
     </div>
 
     <Tabs v-else :value="activeTabId" @update:value="activeTabId = $event" scrollable>

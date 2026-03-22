@@ -1,4 +1,6 @@
 <template>
+    <Toast position="bottom-right" />
+    <ConfirmDialog />
     <div class="max-w-2xl mx-auto p-6 flex flex-col gap-5">
         <div class="flex items-center justify-between">
             <h1 class="text-xl font-bold">Background Clicker Bot</h1>
@@ -39,7 +41,9 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import Button from 'primevue/button';
 import Drawer from 'primevue/drawer';
+import ConfirmDialog from 'primevue/confirmdialog';
 import Divider from 'primevue/divider';
+import Toast from 'primevue/toast';
 import ToggleSwitch from 'primevue/toggleswitch';
 import PresetManager from './components/PresetManager.vue';
 import BotTabView from './components/BotTabView.vue';

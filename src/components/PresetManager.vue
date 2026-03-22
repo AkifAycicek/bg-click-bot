@@ -126,8 +126,10 @@ import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
+import { useConfirm } from 'primevue/useconfirm';
 import { usePresets } from '../composables/usePresets';
 
+const confirm = useConfirm();
 const emit = defineEmits(['open-in-tab', 'auto-save-changed']);
 
 const {
@@ -159,10 +161,19 @@ async function onCreate() {
     emit('open-in-tab', { presetId: result.id, presetName: name });
 }
 
-async function onDelete() {
+function onDelete() {
     if (!selectedForAction.value) return;
-    await deletePresetById(selectedForAction.value.id);
-    selectedForAction.value = null;
+    confirm.require({
+        message: `"${selectedForAction.value.name}" profili silinecek. Emin misiniz?`,
+        header: 'Profil Sil',
+        icon: 'pi pi-trash',
+        acceptLabel: 'Sil',
+        rejectLabel: 'Iptal',
+        accept: async () => {
+            await deletePresetById(selectedForAction.value.id);
+            selectedForAction.value = null;
+        }
+    });
 }
 
 async function onRename() {

@@ -19,12 +19,13 @@ describe('App', () => {
     it('shows empty tab state initially', async () => {
         const wrapper = mountApp();
         await flushPromises();
-        expect(wrapper.text()).toContain('Henuz acik sekme yok');
+        expect(wrapper.text()).toContain('Baslamaya hazir misiniz');
     });
 
-    it('shows new tab button in empty state', async () => {
+    it('shows onboarding steps in empty state', async () => {
         const wrapper = mountApp();
         await flushPromises();
-        expect(wrapper.text()).toContain('Yeni Sekme');
+        expect(wrapper.text()).toContain('Hedef pencereyi secin');
+        expect(wrapper.text()).toContain('Tiklama noktalarini ekleyin');
     });
 });
