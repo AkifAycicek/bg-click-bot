@@ -3,14 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import PresetManager from '../../src/components/PresetManager.vue';
 
 const mountWith = (props = {}) =>
-    mount(PresetManager, {
-        props: {
-            currentState: { windowTitle: 'Game', points: [{ x: 1, y: 2, interval: 500 }] },
-            hasState: true,
-            autoSave: false,
-            ...props
-        }
-    });
+    mount(PresetManager, { props });
 
 describe('PresetManager', () => {
     it('renders preset dropdown', async () => {
@@ -25,16 +18,15 @@ describe('PresetManager', () => {
         expect(window.electronAPI.listPresets).toHaveBeenCalled();
     });
 
-    it('renders save button', () => {
+    it('renders open-in-tab button', () => {
         const wrapper = mountWith();
-        const saveBtn = wrapper.findAll('button').find(b => b.find('.pi-save').exists());
-        expect(saveBtn).toBeTruthy();
+        const openBtn = wrapper.findAll('button').find(b => b.find('.pi-external-link').exists());
+        expect(openBtn).toBeTruthy();
     });
 
     it('renders new preset button', () => {
         const wrapper = mountWith();
-        const newBtn = wrapper.findAll('button').find(b => b.find('.pi-plus').exists());
-        expect(newBtn).toBeTruthy();
+        expect(wrapper.text()).toContain('Yeni');
     });
 
     it('renders import and export buttons', () => {
@@ -48,12 +40,11 @@ describe('PresetManager', () => {
         expect(wrapper.text()).toContain('Oto-kaydet');
     });
 
-    it('opens new preset dialog state on plus click', async () => {
+    it('opens new preset dialog on Yeni click', async () => {
         const wrapper = mountWith();
-        const newBtn = wrapper.findAll('button').find(b => b.find('.pi-plus').exists());
+        const newBtn = wrapper.findAll('button').find(b => b.text().includes('Yeni'));
         await newBtn.trigger('click');
         await flushPromises();
-        // Dialog uses teleport, check internal state instead
         expect(wrapper.vm.showNewDialog).toBe(true);
     });
 
@@ -70,5 +61,11 @@ describe('PresetManager', () => {
         const wrapper = mountWith();
         const exportBtn = wrapper.findAll('button').find(b => b.text().includes('Export'));
         expect(exportBtn.attributes('disabled')).toBeDefined();
+    });
+
+    it('disables open-in-tab when no preset selected', () => {
+        const wrapper = mountWith();
+        const openBtn = wrapper.findAll('button').find(b => b.find('.pi-external-link').exists());
+        expect(openBtn.attributes('disabled')).toBeDefined();
     });
 });

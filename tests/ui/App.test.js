@@ -10,38 +10,21 @@ describe('App', () => {
         expect(wrapper.text()).toContain('Background Clicker Bot');
     });
 
-    it('renders all child components', async () => {
-        const wrapper = mountApp();
-        await flushPromises();
-        expect(wrapper.text()).toContain('Hedef ve Noktalar'); // Card title
-        expect(wrapper.text()).toContain('Yeni Nokta Ekle');   // AddPointForm
-        expect(wrapper.text()).toContain('Tiklama Noktalari'); // ClickPointsTable card
-        expect(wrapper.text()).toContain('Kontrol');            // StatusPanel card
-        expect(wrapper.text()).toContain('Baslat');             // StatusPanel button
-    });
-
     it('renders settings gear button', () => {
         const wrapper = mountApp();
         const gearBtn = wrapper.findAll('button').find(b => b.find('.pi-cog').exists());
         expect(gearBtn).toBeTruthy();
     });
 
-    it('shows empty points message initially', async () => {
+    it('shows empty tab state initially', async () => {
         const wrapper = mountApp();
         await flushPromises();
-        expect(wrapper.text()).toContain('Henuz nokta eklenmedi');
+        expect(wrapper.text()).toContain('Henuz acik sekme yok');
     });
 
-    it('disables Baslat button when no window selected and no points', async () => {
+    it('shows new tab button in empty state', async () => {
         const wrapper = mountApp();
         await flushPromises();
-        const baslatBtn = wrapper.findAll('button').find(b => b.text().includes('Baslat'));
-        expect(baslatBtn.attributes('disabled')).toBeDefined();
-    });
-
-    it('registers click count listener on mount', async () => {
-        mountApp();
-        await flushPromises();
-        expect(window.electronAPI.onClickCountUpdate).toHaveBeenCalled();
+        expect(wrapper.text()).toContain('Yeni Sekme');
     });
 });

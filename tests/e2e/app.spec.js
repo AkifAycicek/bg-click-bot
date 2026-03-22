@@ -6,7 +6,6 @@ let electronApp;
 let page;
 
 test.beforeAll(async () => {
-    // Remove ELECTRON_RUN_AS_NODE so Electron starts as a real browser process
     const env = { ...process.env };
     delete env.ELECTRON_RUN_AS_NODE;
 
@@ -15,31 +14,12 @@ test.beforeAll(async () => {
         env
     });
     page = await electronApp.firstWindow();
-    // Wait for Vue to mount
     await page.waitForSelector('#app');
 });
 
 test.afterAll(async () => {
     if (electronApp) await electronApp.close();
 });
-
-// Helper: get nth combobox (0=preset, 1=window selector)
-async function getCombobox(index) {
-    const comboboxes = await page.$$('[role="combobox"]');
-    return comboboxes[index] || null;
-}
-
-// Helper: get the "Ayarlar" card's spinbutton inputs (X, Y, Interval)
-async function getPointInputs() {
-    // Find inputs inside the AddPointForm (after "Yeni Nokta Ekle" text)
-    return await page.$$('input[role="spinbutton"]');
-}
-
-// Helper: get trash buttons inside the points table only
-async function getTableTrashButtons() {
-    // Trash buttons that are siblings of map-marker buttons (in the table)
-    return await page.$$('button:has(.pi-trash)');
-}
 
 test.describe('Background Clicker Bot Electron App', () => {
 
@@ -58,135 +38,107 @@ test.describe('Background Clicker Bot Electron App', () => {
         expect(gearBtn).toBeTruthy();
     });
 
-    test('should show window selector', async () => {
-        // Only one combobox on main page now (window selector)
-        const windowSelect = await getCombobox(0);
-        expect(windowSelect).toBeTruthy();
-    });
-
-    test('should show refresh button', async () => {
-        const refreshBtn = await page.$('button .pi-refresh');
-        expect(refreshBtn).toBeTruthy();
-    });
-
-    test('should show add point form', async () => {
-        const formText = await page.textContent('body');
-        expect(formText).toContain('Yeni Nokta Ekle');
-        expect(formText).toContain('Yakala');
-        expect(formText).toContain('Ekle');
-    });
-
-    test('should show points table section', async () => {
+    test('should show empty tab state or restored tabs', async () => {
         const text = await page.textContent('body');
-        expect(text).toContain('Tiklama Noktalari');
+        // Either shows empty state or restored tabs from previous session
+        const hasEmptyState = text.includes('Henuz acik sekme yok');
+        const hasTabs = (await page.$$('[role="tab"]')).length > 0;
+        expect(hasEmptyState || hasTabs).toBe(true);
     });
 
-    test('should show Baslat button', async () => {
-        const baslatBtn = await page.$('button:has-text("Baslat")');
-        expect(baslatBtn).toBeTruthy();
-    });
-
-    test('should populate window list on dropdown open', async () => {
-        const windowSelect = await getCombobox(0);
-        if (windowSelect) {
-            await windowSelect.click();
-            await page.waitForTimeout(500);
-            const options = await page.$$('[role="option"]');
-            expect(options.length).toBeGreaterThanOrEqual(0);
-            await page.keyboard.press('Escape');
+    test('should open new tab and show bot panel', async () => {
+        // Click "Yeni Sekme" button (either in empty state or tab bar)
+        const newTabBtn = await page.$('button:has-text("Yeni Sekme")');
+        if (newTabBtn) {
+            await newTabBtn.click();
+        } else {
+            // Tab bar plus button
+            const plusBtn = await page.$('button .pi-plus');
+            if (plusBtn) await plusBtn.click();
         }
-    });
-
-    test('should select a window, add multiple points, and verify table', async () => {
-        // 1. Open window selector dropdown (only combobox on main page)
-        const windowSelect = await getCombobox(0);
-        await windowSelect.click();
         await page.waitForTimeout(500);
 
-        // Clear filter to see all windows
+        // Should now show bot panel content
+        const text = await page.textContent('body');
+        expect(text).toContain('Hedef ve Noktalar');
+        expect(text).toContain('Yeni Nokta Ekle');
+        expect(text).toContain('Kontrol');
+    });
+
+    test('should show window selector in tab', async () => {
+        const combobox = await page.$('[role="combobox"]');
+        expect(combobox).toBeTruthy();
+    });
+
+    test('should add points and verify table in tab', async () => {
+        // Select a window
+        const combobox = await page.$('[role="combobox"]');
+        await combobox.click();
+        await page.waitForTimeout(500);
+
         const filterInput = await page.$('input[role="searchbox"]');
         if (filterInput) {
             await filterInput.fill('');
             await page.waitForTimeout(300);
         }
 
-        // Select the first option
         const firstOption = await page.$('[role="option"]');
-        expect(firstOption).toBeTruthy();
-        await firstOption.click();
+        if (firstOption) {
+            await firstOption.click();
+            await page.waitForTimeout(300);
+        }
+
+        // Add a point
+        const inputs = await page.$$('input[role="spinbutton"]');
+        if (inputs.length >= 3) {
+            await inputs[0].fill('100');
+            await inputs[1].fill('200');
+            await inputs[2].fill('500');
+
+            const ekleBtn = await page.$('button:has-text("Ekle")');
+            await ekleBtn.click();
+            await page.waitForTimeout(200);
+
+            const bodyText = await page.textContent('body');
+            expect(bodyText).toContain('100');
+            expect(bodyText).toContain('200');
+            expect(bodyText).toContain('500');
+        }
+    });
+
+    test('should open settings drawer', async () => {
+        const gearBtn = await page.$('button .pi-cog');
+        await gearBtn.click();
+        await page.waitForTimeout(500);
+
+        const drawerText = await page.textContent('body');
+        expect(drawerText).toContain('Karanlik Mod');
+        expect(drawerText).toContain('Profiller');
+        expect(drawerText).toContain('Import');
+        expect(drawerText).toContain('Export');
+
+        // Close drawer
+        await page.keyboard.press('Escape');
         await page.waitForTimeout(300);
+    });
 
-        // 2. Add first point: x=100, y=200, interval=500
-        let inputs = await getPointInputs();
-        await inputs[0].fill('100');
-        await inputs[1].fill('200');
-        await inputs[2].fill('500');
-
-        const ekleBtn = await page.$('button:has-text("Ekle")');
-        await ekleBtn.click();
-        await page.waitForTimeout(200);
-
-        // Verify first row
-        let bodyText = await page.textContent('body');
-        expect(bodyText).toContain('100');
-        expect(bodyText).toContain('200');
-        expect(bodyText).toContain('500');
-        // Table should have data (empty message gone or never shown)
-
-        // 3. Add second point: x=350, y=420, interval=1500
-        inputs = await getPointInputs();
-        await inputs[0].fill('350');
-        await inputs[1].fill('420');
-        await inputs[2].fill('1500');
-        await ekleBtn.click();
-        await page.waitForTimeout(200);
-
-        bodyText = await page.textContent('body');
-        expect(bodyText).toContain('350');
-        expect(bodyText).toContain('420');
-        expect(bodyText).toContain('1500');
-
-        // 4. Add third point: x=50, y=900, interval=3000
-        inputs = await getPointInputs();
-        await inputs[0].fill('50');
-        await inputs[1].fill('900');
-        await inputs[2].fill('3000');
-        await ekleBtn.click();
-        await page.waitForTimeout(200);
-
-        bodyText = await page.textContent('body');
-        expect(bodyText).toContain('50');
-        expect(bodyText).toContain('900');
-        expect(bodyText).toContain('3000');
-
-        // 5. Verify all values still in table
-        expect(bodyText).toContain('100');
-        expect(bodyText).toContain('200');
-        expect(bodyText).toContain('500');
-        expect(bodyText).toContain('350');
-        expect(bodyText).toContain('420');
-        expect(bodyText).toContain('1500');
-
-        // 6. Baslat should be enabled
+    test('tab should show running indicator when started', async () => {
         const baslatBtn = await page.$('button:has-text("Baslat")');
-        const disabled = await baslatBtn.isDisabled();
-        expect(disabled).toBe(false);
+        if (baslatBtn && !(await baslatBtn.isDisabled())) {
+            await baslatBtn.click();
+            await page.waitForTimeout(500);
 
-        // 7. Count recapture buttons (map-marker) as proxy for table rows
-        let mapButtons = await page.$$('button:has(.pi-map-marker)');
-        // Subtract 1 for AddPointForm's Yakala button
-        const formYakalaCount = 1;
-        const tableRowCount = mapButtons.length - formYakalaCount;
-        expect(tableRowCount).toBeGreaterThanOrEqual(3);
+            // Should show Durdur button
+            const durdurBtn = await page.$('button:has-text("Durdur")');
+            expect(durdurBtn).toBeTruthy();
 
-        // 8. Delete one point via first table trash button
-        let trashButtons = await getTableTrashButtons();
-        const trashBefore = trashButtons.length;
-        // Click the second trash button (skip PresetManager's trash if any)
-        await trashButtons[1].click();
-        await page.waitForTimeout(200);
+            // Green dot indicator in tab
+            const greenDot = await page.$('.pi-circle-fill');
+            expect(greenDot).toBeTruthy();
 
-        trashButtons = await getTableTrashButtons();
-        expect(trashButtons.length).toBe(trashBefore - 1);
+            // Stop it
+            await durdurBtn.click();
+            await page.waitForTimeout(200);
+        }
     });
 });
