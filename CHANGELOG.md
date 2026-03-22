@@ -1,0 +1,51 @@
+# Changelog
+
+## [1.1.0](https://github.com/AkifAycicek/bg-click-bot/compare/v1.0.0...v1.1.0) (2026-03-22)
+
+
+### Features
+
+* add autoFilterFocus and simplify WindowSelector ([9fc8368](https://github.com/AkifAycicek/bg-click-bot/commit/9fc836867afc151b3a99fc75f9f430f2687beb41))
+* add background clicker bot for SRO ([42a158d](https://github.com/AkifAycicek/bg-click-bot/commit/42a158df675a3053e71de2028d3ef0c4355dea5a))
+* add build script for standalone distribution ([1d818aa](https://github.com/AkifAycicek/bg-click-bot/commit/1d818aada02f613c10c4db18f9649348b7705cff))
+* add dark mode with system preference detection ([d7ddebd](https://github.com/AkifAycicek/bg-click-bot/commit/d7ddebd3aaed61f109425fb83e8573a8fa006441))
+* add Electron desktop GUI with PrimeVue and Tailwind ([83507a4](https://github.com/AkifAycicek/bg-click-bot/commit/83507a47627dfd84f79b3da60804492a75c9a2b8))
+* add filter with default SRO value to window selector ([a3e2d93](https://github.com/AkifAycicek/bg-click-bot/commit/a3e2d93f1b58340ebac28da7d9791985342587c6))
+* add global hotkey support for per-tab start/stop toggle ([7878cea](https://github.com/AkifAycicek/bg-click-bot/commit/7878ceac477bb47ef2e16e410d16e1f867438651))
+* add inline editing for click point X, Y and interval ([4b7ce35](https://github.com/AkifAycicek/bg-click-bot/commit/4b7ce3579810079d041f8975411ec9d1749c8bc1))
+* add mouse click coordinate capture mode ([98a9e6b](https://github.com/AkifAycicek/bg-click-bot/commit/98a9e6b7cb76e451f55af34fb1d3e4fb66a84562))
+* add name field to click points ([16e45c0](https://github.com/AkifAycicek/bg-click-bot/commit/16e45c0b33151e66e40e1395bdf3da1422c2ce34))
+* add per-point pause/resume during bot execution ([fc7f14c](https://github.com/AkifAycicek/bg-click-bot/commit/fc7f14cb33de98e40c725dedbeff8368a5cbebf7))
+* add preset and settings IPC handlers ([866bd99](https://github.com/AkifAycicek/bg-click-bot/commit/866bd99726445a4110d343a5d5ecfbc9ea4758a0))
+* add preset file manager module with unit tests ([847aecf](https://github.com/AkifAycicek/bg-click-bot/commit/847aecf2ee2cf1abb7fd0e483655e2e7a16c1519))
+* add PresetManager UI component ([b199683](https://github.com/AkifAycicek/bg-click-bot/commit/b19968374a769b857f63c3608d5041944a4c6362))
+* add recapture handler and register Tooltip directive ([fc991c4](https://github.com/AkifAycicek/bg-click-bot/commit/fc991c42bfeb8cbc936eb929df62bd735a6bb7b6))
+* add start/stop controls on tab headers ([47f816a](https://github.com/AkifAycicek/bg-click-bot/commit/47f816ae70b2d186b528d27b55406e5409bae921))
+* add useBotInstance and useTabManager composables ([7a81f20](https://github.com/AkifAycicek/bg-click-bot/commit/7a81f20774e4e8afb2d6dd32dd9315f704ec968a))
+* add window thumbnails to selector dropdown ([63ac8c1](https://github.com/AkifAycicek/bg-click-bot/commit/63ac8c15ecd442e968039afdc81fb13a1f2305b0))
+* comprehensive UI/UX improvements ([0d6b461](https://github.com/AkifAycicek/bg-click-bot/commit/0d6b4611e2136b5a8a40b89bed1e823ac78d8e73))
+* improve editable cells UX with visual cues and recapture ([50874f2](https://github.com/AkifAycicek/bg-click-bot/commit/50874f28e45081b3602ba50b39e4dd0785161512))
+* integrate preset system into App.vue ([df44ffc](https://github.com/AkifAycicek/bg-click-bot/commit/df44ffc525ab20bebb505548705a2ac4b66a07c5))
+* mark unsaved tabs and provide save-as-preset flow ([f0a7901](https://github.com/AkifAycicek/bg-click-bot/commit/f0a7901ad8ac83155616c4c04528b127ad4a7961))
+* persist open tabs on every tab change ([20484bb](https://github.com/AkifAycicek/bg-click-bot/commit/20484bbbefdb8bafbe1ec7e7f8c25bdc14e97080))
+* reliably focus target window on coordinate capture ([0b78827](https://github.com/AkifAycicek/bg-click-bot/commit/0b78827b369f4f384fe91719404990a660b5c2a3))
+* replace Select with grid-based window picker dialog ([84cf9ae](https://github.com/AkifAycicek/bg-click-bot/commit/84cf9ae53e836d4fb63e6c73d358c8dc9adb5b43))
+* show validation messages at bottom of bot panel ([06dc012](https://github.com/AkifAycicek/bg-click-bot/commit/06dc012b676cc76729998d5a0e91865fa101f795))
+* support multiple independent click points with individual intervals ([7c4b84a](https://github.com/AkifAycicek/bg-click-bot/commit/7c4b84a0d154a02bfc668729bb621917b0bc597e))
+* tab-based multi-preset UI ([cf97c48](https://github.com/AkifAycicek/bg-click-bot/commit/cf97c4811d1c1cd6aaa62759f191c5efdb2b2103))
+* use PrintWindow API for window thumbnails ([f7b008e](https://github.com/AkifAycicek/bg-click-bot/commit/f7b008e11ff281a9c6e9a876fa775d6195e4e788))
+
+
+### Bug Fixes
+
+* add Content Security Policy to suppress Electron warning ([49f2244](https://github.com/AkifAycicek/bg-click-bot/commit/49f22446157e57a7a56596786c7d5e31128a044b))
+* add retry logic for dist cleanup in build script ([f56cab1](https://github.com/AkifAycicek/bg-click-bot/commit/f56cab1736bc7958e85c53e20bfea0c0e11f0526))
+* CLI launcher uses node.exe instead of Electron ([e998f57](https://github.com/AkifAycicek/bg-click-bot/commit/e998f5788beba0dd8c0f50acf5fdd982c5a35976))
+* dark mode styling for DataTable cell editor inputs ([70d7e54](https://github.com/AkifAycicek/bg-click-bot/commit/70d7e548a25eaf1aecfaded635194c4b495d1239))
+* e2e tests failing due to ELECTRON_RUN_AS_NODE env var ([94b6c10](https://github.com/AkifAycicek/bg-click-bot/commit/94b6c100a7d948e9378a80922d39695313529f0a))
+* ensure auto-save triggers on point add, remove, and edit ([d1e3797](https://github.com/AkifAycicek/bg-click-bot/commit/d1e3797eec35f896fca94e80809dfa8f99ec5a84))
+* persist window selection and point names in presets ([0616107](https://github.com/AkifAycicek/bg-click-bot/commit/0616107b8d5b978df42b86c003d0729c1ea953b2))
+* prevent duplicate tabs for same preset ([ce731cb](https://github.com/AkifAycicek/bg-click-bot/commit/ce731cb8f9d1644f889f0d7bdaaea0a00a06554e))
+* stop all timers and hotkeys on page reload ([ec633cf](https://github.com/AkifAycicek/bg-click-bot/commit/ec633cfc28fae808a3a14947e9bb8558fa746cea))
+* update build script for GUI+CLI and fix bat launcher paths ([bc3868e](https://github.com/AkifAycicek/bg-click-bot/commit/bc3868e038b2f9688ff8584d5f3b4ab5d5bf36eb))
+* update e2e tests for preset system integration ([8bfbc29](https://github.com/AkifAycicek/bg-click-bot/commit/8bfbc29a8bb9b601873dbbeee10e737c2adcbecc))
