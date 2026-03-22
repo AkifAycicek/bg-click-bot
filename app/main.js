@@ -37,6 +37,16 @@ function createWindow() {
         mainWindow.loadFile(path.join(__dirname, '..', 'dist-renderer', 'index.html'));
     }
 
+    // Stop all timers when page reloads to prevent orphaned timers
+    mainWindow.webContents.on('did-start-loading', () => {
+        stopAllInstances();
+        // Unregister all hotkeys on reload
+        for (const [, acc] of registeredHotkeys) {
+            try { globalShortcut.unregister(acc); } catch {}
+        }
+        registeredHotkeys.clear();
+    });
+
     mainWindow.on('closed', () => {
         stopAllInstances();
         mainWindow = null;
