@@ -1,6 +1,6 @@
 {
   "name": "bg_clicker_bot",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "app/main.js",
   "scripts": {
     "start": "node bot.js",
