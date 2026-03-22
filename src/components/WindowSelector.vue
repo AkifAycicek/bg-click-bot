@@ -5,6 +5,7 @@
                 v-model="selected"
                 :options="windows"
                 optionLabel="title"
+                dataKey="hwnd"
                 placeholder="Pencere secin..."
                 class="w-full"
                 :disabled="disabled"
@@ -12,7 +13,24 @@
                 autoFilterFocus
                 :filterFields="['title']"
                 filterPlaceholder="Pencere ara..."
-            />
+            >
+                <template #value="{ value, placeholder }">
+                    <div v-if="value" class="flex items-center gap-2">
+                        <img v-if="value.thumbnail" :src="value.thumbnail" class="w-8 h-5 object-cover rounded border border-surface-200" />
+                        <span class="truncate">{{ value.title }}</span>
+                    </div>
+                    <span v-else class="text-surface-400">{{ placeholder }}</span>
+                </template>
+                <template #option="{ option }">
+                    <div class="flex items-center gap-3 py-1">
+                        <img v-if="option.thumbnail" :src="option.thumbnail" class="w-20 h-12 object-cover rounded border border-surface-200" />
+                        <div v-else class="w-20 h-12 rounded border border-surface-200 bg-surface-100 flex items-center justify-center">
+                            <i class="pi pi-desktop text-surface-400" />
+                        </div>
+                        <span class="truncate text-sm">{{ option.title }}</span>
+                    </div>
+                </template>
+            </Select>
         </div>
         <Button
             icon="pi pi-refresh"
