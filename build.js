@@ -56,9 +56,14 @@ fs.copyFileSync(
 );
 console.log('Copied koffi native module (win32_x64)');
 
-// 5. Create launchers
-// CLI launcher
-const cliBat = `@echo off\r\nset "APP_DIR=%~dp0."\r\n"%APP_DIR%\\electron\\electron.exe" --no-sandbox "%APP_DIR%" -- --cli\r\npause\r\n`;
+// 5. Copy node.exe for CLI mode
+const nodePath = process.execPath;
+fs.copyFileSync(nodePath, path.join(DIST, 'node.exe'));
+console.log('Copied node.exe for CLI');
+
+// 6. Create launchers
+// CLI launcher (node.exe + bot.js, no Electron)
+const cliBat = `@echo off\r\nset "APP_DIR=%~dp0."\r\n"%APP_DIR%\\node.exe" "%APP_DIR%\\bot.js"\r\npause\r\n`;
 // GUI launcher (Electron app)
 const guiBat = `@echo off\r\nset "APP_DIR=%~dp0."\r\nstart "" "%APP_DIR%\\electron\\electron.exe" --no-sandbox "%APP_DIR%"\r\n`;
 
