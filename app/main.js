@@ -4,7 +4,6 @@ const bot = require('../bot');
 
 let mainWindow;
 const activeTimers = [];
-let activeHwnd = null;
 let activeCounts = [];
 
 function createWindow() {
@@ -43,9 +42,13 @@ ipcMain.handle('get-windows', () => {
 });
 
 ipcMain.handle('capture-position', async (_event, hwnd) => {
+    // Focus target FIRST while we're still the foreground process
+    bot.focusWindow(hwnd);
+
+    // Then minimize Electron
     if (mainWindow) mainWindow.minimize();
 
-    // Small delay so minimize completes before capture starts
+    // Small delay so windows settle
     await new Promise(r => setTimeout(r, 300));
 
     const pos = await bot.captureMousePosition(hwnd);
@@ -57,7 +60,7 @@ ipcMain.handle('capture-position', async (_event, hwnd) => {
 
 function startTimers(hwnd, points) {
     stopAllTimers();
-    activeHwnd = hwnd;
+
 
     points.forEach((p, i) => {
         const timer = setInterval(() => {
@@ -80,7 +83,6 @@ ipcMain.handle('start-clicking', (_event, { hwnd, points }) => {
 
 ipcMain.handle('stop-clicking', () => {
     stopAllTimers();
-    activeHwnd = null;
     activeCounts = [];
     return { success: true };
 });

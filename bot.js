@@ -19,6 +19,51 @@ const PostMessageA = user32.func('PostMessageA', 'int', ['int', 'uint', 'int', '
 const GetCursorPos = user32.func('GetCursorPos', 'int', [koffi.out(koffi.pointer(POINT))]);
 const ScreenToClient = user32.func('ScreenToClient', 'int', ['int', koffi.inout(koffi.pointer(POINT))]);
 const GetAsyncKeyState = user32.func('GetAsyncKeyState', 'short', ['int']);
+const SetForegroundWindow = user32.func('SetForegroundWindow', 'int', ['int']);
+const ShowWindow = user32.func('ShowWindow', 'int', ['int', 'int']);
+const IsIconic = user32.func('IsIconic', 'int', ['int']);
+const GetForegroundWindow = user32.func('GetForegroundWindow', 'int', []);
+const SetWindowPos = user32.func('SetWindowPos', 'int', ['int', 'int', 'int', 'int', 'int', 'int', 'uint']);
+const SystemParametersInfoA = user32.func('SystemParametersInfoA', 'int', ['uint', 'uint', 'uint *', 'uint']);
+
+const SW_RESTORE = 9;
+const SPI_GETFOREGROUNDLOCKTIMEOUT = 0x2000;
+const SPI_SETFOREGROUNDLOCKTIMEOUT = 0x2001;
+const SPIF_SENDCHANGE = 0x0002;
+const HWND_TOPMOST = -1;
+const HWND_NOTOPMOST = -2;
+const SWP_NOMOVE = 0x0002;
+const SWP_NOSIZE = 0x0001;
+
+function focusWindow(hwnd) {
+    // Step 1: Restore if minimized
+    if (IsIconic(hwnd)) {
+        ShowWindow(hwnd, SW_RESTORE);
+    }
+
+    // Step 2: Try direct SetForegroundWindow (works if we're foreground)
+    if (SetForegroundWindow(hwnd) && GetForegroundWindow() === hwnd) {
+        return;
+    }
+
+    // Step 3: Disable foreground lock timeout (AutoHotkey method)
+    const originalTimeout = Buffer.alloc(4);
+    SystemParametersInfoA(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, originalTimeout, 0);
+    const zeroTimeout = Buffer.alloc(4, 0);
+    SystemParametersInfoA(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, zeroTimeout, SPIF_SENDCHANGE);
+
+    SetForegroundWindow(hwnd);
+
+    // Restore original timeout
+    SystemParametersInfoA(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, originalTimeout, SPIF_SENDCHANGE);
+
+    // Step 4: Fallback - topmost toggle
+    if (GetForegroundWindow() !== hwnd) {
+        SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        SetForegroundWindow(hwnd);
+    }
+}
 
 // Messages
 const WM_LBUTTONDOWN = 0x0201;
@@ -206,7 +251,8 @@ module.exports = {
     captureMousePosition,
     WM_LBUTTONDOWN,
     WM_LBUTTONUP,
-    MK_LBUTTON
+    MK_LBUTTON,
+    focusWindow
 };
 
 // Run only when executed directly
