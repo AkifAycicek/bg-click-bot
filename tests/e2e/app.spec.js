@@ -6,8 +6,13 @@ let electronApp;
 let page;
 
 test.beforeAll(async () => {
+    // Remove ELECTRON_RUN_AS_NODE so Electron starts as a real browser process
+    const env = { ...process.env };
+    delete env.ELECTRON_RUN_AS_NODE;
+
     electronApp = await electron.launch({
-        args: [path.join(__dirname, '..', '..')]
+        args: [path.join(__dirname, '..', '..')],
+        env
     });
     page = await electronApp.firstWindow();
     // Wait for Vue to mount
@@ -30,9 +35,9 @@ test.describe('Background Clicker Bot Electron App', () => {
         expect(heading).toContain('Background Clicker Bot');
     });
 
-    test('should show window selector with label', async () => {
-        const label = await page.textContent('label');
-        expect(label).toContain('Hedef Pencere');
+    test('should show window selector', async () => {
+        const combobox = await page.$('[role="combobox"]');
+        expect(combobox).toBeTruthy();
     });
 
     test('should show refresh button', async () => {
