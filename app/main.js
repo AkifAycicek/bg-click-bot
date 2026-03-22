@@ -1,6 +1,8 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const fs = require('fs');
 const path = require('path');
 const bot = require('../bot');
+const presets = require('./presets');
 
 let mainWindow;
 const activeTimers = [];
@@ -92,7 +94,52 @@ ipcMain.handle('update-points', (_event, { hwnd, points }) => {
     return { success: true };
 });
 
-app.whenReady().then(createWindow);
+// Preset IPC Handlers
+
+ipcMain.handle('preset:list', () => presets.listPresets());
+ipcMain.handle('preset:load', (_e, id) => presets.loadPreset(id));
+ipcMain.handle('preset:save', (_e, data) => presets.savePreset(data));
+ipcMain.handle('preset:delete', (_e, id) => presets.deletePreset(id));
+ipcMain.handle('preset:rename', (_e, { id, newName }) => presets.renamePreset(id, newName));
+ipcMain.handle('preset:duplicate', (_e, { id, newName }) => presets.duplicatePreset(id, newName));
+
+ipcMain.handle('preset:export', async (_e, id) => {
+    const preset = presets.loadPreset(id);
+    if (!preset) return null;
+    const result = await dialog.showSaveDialog(mainWindow, {
+        defaultPath: `${preset.name}.json`,
+        filters: [{ name: 'Preset', extensions: ['json'] }]
+    });
+    if (!result.canceled) {
+        fs.copyFileSync(presets.getExportPath(id), result.filePath);
+        return { path: result.filePath };
+    }
+    return null;
+});
+
+ipcMain.handle('preset:import', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        filters: [{ name: 'Preset', extensions: ['json'] }],
+        properties: ['openFile']
+    });
+    if (!result.canceled) {
+        return presets.importPreset(result.filePaths[0]);
+    }
+    return null;
+});
+
+// Settings IPC Handlers
+
+ipcMain.handle('settings:load', () => presets.loadSettings());
+ipcMain.handle('settings:save', (_e, settings) => {
+    presets.saveSettings(settings);
+    return { success: true };
+});
+
+app.whenReady().then(() => {
+    presets.init(app.getPath('userData'));
+    createWindow();
+});
 
 app.on('window-all-closed', () => {
     stopAllTimers();

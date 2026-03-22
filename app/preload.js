@@ -11,5 +11,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
     removeClickCountListener: () => {
         ipcRenderer.removeAllListeners('click-count-update');
-    }
+    },
+
+    // Presets
+    listPresets: () => ipcRenderer.invoke('preset:list'),
+    loadPreset: (id) => ipcRenderer.invoke('preset:load', id),
+    savePreset: (data) => ipcRenderer.invoke('preset:save', data),
+    deletePreset: (id) => ipcRenderer.invoke('preset:delete', id),
+    renamePreset: (id, newName) => ipcRenderer.invoke('preset:rename', { id, newName }),
+    duplicatePreset: (id, newName) => ipcRenderer.invoke('preset:duplicate', { id, newName }),
+    exportPreset: (id) => ipcRenderer.invoke('preset:export', id),
+    importPreset: () => ipcRenderer.invoke('preset:import'),
+
+    // Settings
+    loadSettings: () => ipcRenderer.invoke('settings:load'),
+    saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings)
 });
