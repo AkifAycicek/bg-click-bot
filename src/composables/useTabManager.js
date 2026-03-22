@@ -19,6 +19,10 @@ export function useTabManager() {
             const instance = botInstances.get(data.tabId);
             if (instance) instance.handleCountUpdate(data);
         });
+        window.electronAPI.onHotkeyTriggered((data) => {
+            const instance = botInstances.get(data.tabId);
+            if (instance) instance.toggleBot();
+        });
     }
 
     async function openTab(presetId, presetName) {
@@ -53,6 +57,7 @@ export function useTabManager() {
             await instance.dispose();
             botInstances.delete(tabId);
         }
+        await window.electronAPI.unregisterHotkey(tabId);
 
         const idx = tabs.value.findIndex(t => t.id === tabId);
         if (idx !== -1) tabs.value.splice(idx, 1);

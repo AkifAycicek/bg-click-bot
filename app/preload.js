@@ -7,6 +7,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     stopClicking: (tabId) => ipcRenderer.invoke('stop-clicking', { tabId }),
     updatePoints: (tabId, hwnd, points) => ipcRenderer.invoke('update-points', { tabId, hwnd, points }),
     togglePointPause: (tabId, pointIndex) => ipcRenderer.invoke('toggle-point-pause', { tabId, pointIndex }),
+    registerHotkey: (tabId, accelerator) => ipcRenderer.invoke('register-hotkey', { tabId, accelerator }),
+    unregisterHotkey: (tabId) => ipcRenderer.invoke('unregister-hotkey', { tabId }),
+    onHotkeyTriggered: (callback) => {
+        ipcRenderer.on('hotkey-triggered', (_event, data) => callback(data));
+    },
     onClickCountUpdate: (callback) => {
         ipcRenderer.on('click-count-update', (_event, data) => callback(data));
     },

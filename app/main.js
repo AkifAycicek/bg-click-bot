@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, globalShortcut } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const bot = require('../bot');
@@ -170,6 +170,47 @@ ipcMain.handle('preset:import', async () => {
     return null;
 });
 
+// Hotkey IPC Handlers
+
+const registeredHotkeys = new Map(); // tabId -> accelerator
+
+ipcMain.handle('register-hotkey', (_event, { tabId, accelerator }) => {
+    // Unregister old hotkey for this tab
+    const old = registeredHotkeys.get(tabId);
+    if (old) {
+        try { globalShortcut.unregister(old); } catch {}
+    }
+
+    if (!accelerator) {
+        registeredHotkeys.delete(tabId);
+        return { success: true };
+    }
+
+    try {
+        const registered = globalShortcut.register(accelerator, () => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('hotkey-triggered', { tabId });
+            }
+        });
+        if (registered) {
+            registeredHotkeys.set(tabId, accelerator);
+            return { success: true };
+        }
+        return { success: false, error: 'Kisayol kullanimda' };
+    } catch (err) {
+        return { success: false, error: err.message };
+    }
+});
+
+ipcMain.handle('unregister-hotkey', (_event, { tabId }) => {
+    const acc = registeredHotkeys.get(tabId);
+    if (acc) {
+        try { globalShortcut.unregister(acc); } catch {}
+        registeredHotkeys.delete(tabId);
+    }
+    return { success: true };
+});
+
 // Settings IPC Handlers
 
 ipcMain.handle('settings:load', () => presets.loadSettings());
@@ -185,5 +226,6 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
     stopAllInstances();
+    globalShortcut.unregisterAll();
     app.quit();
 });

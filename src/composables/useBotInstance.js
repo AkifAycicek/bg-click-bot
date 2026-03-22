@@ -79,6 +79,14 @@ export function useBotInstance(tabId) {
         await window.electronAPI.togglePointPause(tabId, pointIndex);
     }
 
+    async function toggleBot() {
+        if (isRunning.value) {
+            await stopBot();
+        } else if (canStart.value) {
+            await startBot();
+        }
+    }
+
     function handleCountUpdate(data) {
         if (data.tabId !== tabId) return;
         clickCounts.value = data.counts;
@@ -116,6 +124,7 @@ export function useBotInstance(tabId) {
         recapturePoint,
         startBot,
         stopBot,
+        toggleBot,
         togglePointPause,
         handleCountUpdate,
         loadFromPreset,
