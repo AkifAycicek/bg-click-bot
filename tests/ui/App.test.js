@@ -7,7 +7,7 @@ const mountApp = () => mount(App);
 describe('App', () => {
     it('renders the app title', () => {
         const wrapper = mountApp();
-        expect(wrapper.text()).toContain('SRO Background Clicker Bot');
+        expect(wrapper.text()).toContain('Background Clicker Bot');
     });
 
     it('renders all child components', async () => {

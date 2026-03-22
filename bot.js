@@ -139,7 +139,7 @@ async function main() {
         output: process.stdout
     });
 
-    console.log('\n=== SRO Background Clicker Bot ===\n');
+    console.log('\n=== Background Clicker Bot ===\n');
 
     // 1. List windows
     const windows = getVisibleWindows();

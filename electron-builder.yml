@@ -1,5 +1,5 @@
-appId: com.srobot.clicker
-productName: SRO Bot
+appId: com.bgclicker.bot
+productName: Background Clicker Bot
 directories:
   output: dist-electron
 files:

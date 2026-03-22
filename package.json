@@ -1,5 +1,5 @@
 {
-  "name": "sro_bot",
+  "name": "bg_clicker_bot",
   "version": "1.0.0",
   "main": "app/main.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "SRO Background Clicker Bot",
+  "description": "Background Clicker Bot",
   "dependencies": {
     "@primevue/themes": "^4.5.4",
     "@tailwindcss/postcss": "^4.2.2",

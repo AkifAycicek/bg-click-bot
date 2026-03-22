@@ -23,9 +23,9 @@ window.matchMedia = window.matchMedia || vi.fn().mockImplementation(query => ({
 // Mock window.electronAPI for all UI tests
 window.electronAPI = {
     getWindows: vi.fn().mockResolvedValue([
-        { hwnd: 1001, title: 'SRO_Client' },
+        { hwnd: 1001, title: 'Game Client' },
         { hwnd: 1002, title: 'Notepad' },
-        { hwnd: 1003, title: 'SRO_Client 2' }
+        { hwnd: 1003, title: 'Game Client 2' }
     ]),
     capturePosition: vi.fn().mockResolvedValue({ x: 100, y: 200 }),
     startClicking: vi.fn().mockResolvedValue({ success: true }),

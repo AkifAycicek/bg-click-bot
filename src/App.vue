@@ -1,7 +1,7 @@
 <template>
     <div class="max-w-2xl mx-auto p-6 flex flex-col gap-5">
         <div class="flex items-center justify-between">
-            <h1 class="text-xl font-bold">SRO Background Clicker Bot</h1>
+            <h1 class="text-xl font-bold">Background Clicker Bot</h1>
             <Button
                 :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
                 severity="secondary"
@@ -73,11 +73,11 @@ const isDark = ref(false);
 function toggleDark() {
     isDark.value = !isDark.value;
     document.documentElement.classList.toggle('dark-mode', isDark.value);
-    localStorage.setItem('sro-dark-mode', isDark.value ? '1' : '0');
+    localStorage.setItem('bg-clicker-dark-mode', isDark.value ? '1' : '0');
 }
 
 function initDarkMode() {
-    const saved = localStorage.getItem('sro-dark-mode');
+    const saved = localStorage.getItem('bg-clicker-dark-mode');
     if (saved !== null) {
         isDark.value = saved === '1';
     } else {

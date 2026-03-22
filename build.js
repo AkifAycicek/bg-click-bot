@@ -67,17 +67,17 @@ const cliBat = `@echo off\r\nset "APP_DIR=%~dp0."\r\n"%APP_DIR%\\node.exe" "%APP
 // GUI launcher (Electron app)
 const guiBat = `@echo off\r\nset "APP_DIR=%~dp0."\r\nstart "" "%APP_DIR%\\electron\\electron.exe" --no-sandbox "%APP_DIR%"\r\n`;
 
-fs.writeFileSync(path.join(DIST, 'sro_bot_cli.bat'), cliBat);
-fs.writeFileSync(path.join(DIST, 'sro_bot.bat'), guiBat);
-console.log('Created sro_bot.bat (GUI) and sro_bot_cli.bat (CLI)');
+fs.writeFileSync(path.join(DIST, 'clicker_cli.bat'), cliBat);
+fs.writeFileSync(path.join(DIST, 'clicker.bat'), guiBat);
+console.log('Created clicker.bat (GUI) and clicker_cli.bat (CLI)');
 
 // Summary
 console.log('\n=== Build tamamlandi! ===\n');
 console.log('dist/ klasoru icerigi:\n');
 listDir(DIST);
 console.log('\nKullanim:');
-console.log('  GUI:  dist/sro_bot.bat');
-console.log('  CLI:  dist/sro_bot_cli.bat');
+console.log('  GUI:  dist/clicker.bat');
+console.log('  CLI:  dist/clicker_cli.bat');
 
 // --- Utility functions ---
 

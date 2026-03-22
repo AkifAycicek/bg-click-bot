@@ -18,16 +18,16 @@ test.afterAll(async () => {
     if (electronApp) await electronApp.close();
 });
 
-test.describe('SRO Bot Electron App', () => {
+test.describe('Background Clicker Bot Electron App', () => {
 
-    test('window title should be SRO Bot', async () => {
+    test('window title should be Background Clicker Bot', async () => {
         const title = await page.title();
-        expect(title).toBe('SRO Bot');
+        expect(title).toBe('Background Clicker Bot');
     });
 
     test('should show app heading', async () => {
         const heading = await page.textContent('h1');
-        expect(heading).toContain('SRO Background Clicker Bot');
+        expect(heading).toContain('Background Clicker Bot');
     });
 
     test('should show window selector with label', async () => {
@@ -80,7 +80,7 @@ test.describe('SRO Bot Electron App', () => {
         await select.click();
         await page.waitForTimeout(500);
 
-        // Clear the default SRO filter to see all windows
+        // Clear the default filter to see all windows
         const filterInput = await page.$('input[role="searchbox"]');
         if (filterInput) {
             await filterInput.fill('');
