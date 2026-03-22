@@ -9,7 +9,8 @@
     "build:electron": "electron-builder --win",
     "build:app": "npm run build:renderer && npm run build:electron",
     "test": "node --test tests/bot.test.js",
-    "build": "node build.js"
+    "build": "node build.js",
+    "build:cli": "node build.js --cli-only"
   },
   "keywords": [],
   "author": "",
