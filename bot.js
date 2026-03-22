@@ -7,8 +7,11 @@ const user32 = koffi.load('user32.dll');
 // POINT struct for GetCursorPos / ScreenToClient
 const POINT = koffi.struct('POINT', { x: 'int', y: 'int' });
 
+// Callback type for EnumWindows
+const WNDENUMPROC = koffi.proto('WNDENUMPROC', 'int', ['int', 'int']);
+
 // Window functions
-const EnumWindows = user32.func('EnumWindows', 'int', ['pointer', 'int']);
+const EnumWindows = user32.func('EnumWindows', 'int', [koffi.pointer(WNDENUMPROC), 'int']);
 const GetWindowTextA = user32.func('GetWindowTextA', 'int', ['int', 'uint8 *', 'int']);
 const GetWindowTextLengthA = user32.func('GetWindowTextLengthA', 'int', ['int']);
 const IsWindowVisible = user32.func('IsWindowVisible', 'int', ['int']);
@@ -41,7 +44,7 @@ function getVisibleWindows() {
             }
         }
         return 1; // continue
-    }, koffi.pointer(koffi.proto('WNDENUMPROC', 'int', ['int', 'int'])));
+    }, koffi.pointer(WNDENUMPROC));
 
     EnumWindows(cb, 0);
     koffi.unregister(cb);
@@ -174,7 +177,21 @@ async function main() {
     });
 }
 
-main().catch(err => {
-    console.error('Hata:', err.message);
-    process.exit(1);
-});
+// Export for testing
+module.exports = {
+    makeLParam,
+    getVisibleWindows,
+    backgroundClick,
+    captureMousePosition,
+    WM_LBUTTONDOWN,
+    WM_LBUTTONUP,
+    MK_LBUTTON
+};
+
+// Run only when executed directly
+if (require.main === module) {
+    main().catch(err => {
+        console.error('Hata:', err.message);
+        process.exit(1);
+    });
+}
