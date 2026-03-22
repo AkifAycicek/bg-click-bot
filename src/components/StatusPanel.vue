@@ -23,9 +23,6 @@
             </div>
             <Tag severity="info" :value="'Toplam: ' + totalClicks" />
         </div>
-        <div v-else-if="!canStart" class="ml-auto">
-            <span class="text-xs text-surface-400">Pencere ve nokta ekleyerek baslayin</span>
-        </div>
     </div>
 </template>
 

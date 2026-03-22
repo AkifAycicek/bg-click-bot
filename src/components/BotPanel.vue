@@ -75,6 +75,17 @@
                 </div>
             </template>
         </Card>
+
+        <div v-if="!instance.isRunning.value && !instance.canStart.value" class="flex flex-col gap-1 px-1">
+            <div v-if="!instance.selectedWindow.value" class="flex items-center gap-2 text-xs text-orange-500">
+                <i class="pi pi-exclamation-circle" style="font-size: 0.75rem" />
+                <span>Hedef pencere secilmedi</span>
+            </div>
+            <div v-if="instance.points.value.length === 0" class="flex items-center gap-2 text-xs text-orange-500">
+                <i class="pi pi-exclamation-circle" style="font-size: 0.75rem" />
+                <span>En az bir tiklama noktasi ekleyin</span>
+            </div>
+        </div>
     </div>
 </template>
 
