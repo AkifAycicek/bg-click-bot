@@ -15,15 +15,37 @@
     <Tabs v-else :value="activeTabId" @update:value="activeTabId = $event" scrollable>
         <TabList>
             <Tab v-for="tab in tabs" :key="tab.id" :value="tab.id">
-                <span class="flex items-center gap-2">
-                    <i v-if="getInstance(tab.id)?.isRunning.value" class="pi pi-circle-fill text-green-500" style="font-size: 0.5rem" />
+                <span class="inline-flex items-center gap-2">
+                    <Button
+                        v-if="getInstance(tab.id)?.isRunning.value"
+                        icon="pi pi-stop"
+                        severity="danger"
+                        text
+                        rounded
+                        size="small"
+                        class="p-0 w-5 h-5 flex items-center justify-center self-center"
+                        @click.stop="getInstance(tab.id)?.stopBot()"
+                        v-tooltip.top="'Durdur'"
+                    />
+                    <Button
+                        v-else-if="getInstance(tab.id)?.canStart.value"
+                        icon="pi pi-play"
+                        severity="success"
+                        text
+                        rounded
+                        size="small"
+                        class="p-0 w-5 h-5 flex items-center justify-center self-center"
+                        @click.stop="getInstance(tab.id)?.startBot()"
+                        v-tooltip.top="'Baslat'"
+                    />
+                    <i v-else class="pi pi-circle text-surface-300" style="font-size: 0.5rem" />
                     {{ tab.presetName }}
                     <Button
                         icon="pi pi-times"
                         text
                         rounded
                         size="small"
-                        class="p-0 w-5 h-5"
+                        class="p-0 w-5 h-5 flex items-center justify-center"
                         @click.stop="onCloseTab(tab.id)"
                     />
                 </span>
