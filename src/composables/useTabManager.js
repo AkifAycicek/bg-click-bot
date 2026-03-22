@@ -22,6 +22,15 @@ export function useTabManager() {
     }
 
     async function openTab(presetId, presetName) {
+        // If preset already open, switch to that tab
+        if (presetId) {
+            const existing = tabs.value.find(t => t.presetId === presetId);
+            if (existing) {
+                activeTabId.value = existing.id;
+                return existing.id;
+            }
+        }
+
         const id = `tab-${++tabCounter}`;
         const instance = useBotInstance(id);
 
