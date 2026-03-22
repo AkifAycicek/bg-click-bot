@@ -15,8 +15,13 @@
     "prebuild": "npm test && npm run test:ui && npm run test:e2e",
     "build": "node build.js && npm run build:app"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AkifAycicek/bg-click-bot.git"
+  },
+  "homepage": "https://github.com/AkifAycicek/bg-click-bot",
   "keywords": ["clicker", "auto-clicker", "background", "bot", "electron"],
-  "author": "GHOST-V3",
+  "author": "Akif Aycicek",
   "license": "MIT",
   "description": "Background auto-clicker bot with multi-tab preset support, window thumbnails, and global hotkeys",
   "dependencies": {
