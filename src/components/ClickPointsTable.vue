@@ -52,6 +52,17 @@
                 <InputNumber v-model="data.interval" :min="100" :step="100" class="w-full" :disabled="isRunning" />
             </template>
         </Column>
+        <Column field="inputType" header="Input">
+            <template #body="{ data }">
+                <span :class="isRunning ? '' : 'editable-cell'">
+                    {{ inputTypeLabel(data.inputType) }}
+                    <i v-if="!isRunning" class="pi pi-pencil editable-icon" />
+                </span>
+            </template>
+            <template #editor="{ data }">
+                <Select v-model="data.inputType" :options="inputTypeOptions" optionLabel="label" optionValue="value" class="w-full" />
+            </template>
+        </Column>
         <Column field="clicks" header="Tiklamalar" />
         <Column header="" style="width: 7rem">
             <template #body="{ data }">
@@ -99,6 +110,25 @@ import Column from 'primevue/column';
 import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
+
+const inputTypeOptions = [
+    { label: 'Sol Tik', value: 'left-click' },
+    { label: 'Sag Tik', value: 'right-click' },
+    { label: 'Orta Tik', value: 'middle-click' },
+    { label: 'Cift Tik', value: 'double-click' }
+];
+
+const inputTypeLabels = {
+    'left-click': 'Sol Tik',
+    'right-click': 'Sag Tik',
+    'middle-click': 'Orta Tik',
+    'double-click': 'Cift Tik'
+};
+
+function inputTypeLabel(type) {
+    return inputTypeLabels[type] || 'Sol Tik';
+}
 
 const props = defineProps({
     points: Array,
@@ -125,6 +155,7 @@ const tableData = computed(() =>
         x: p.x,
         y: p.y,
         interval: p.interval,
+        inputType: p.inputType || 'left-click',
         clicks: props.clickCounts[i] || 0
     }))
 );

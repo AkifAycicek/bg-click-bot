@@ -184,7 +184,21 @@ function captureWindowThumbnail(hwnd, thumbWidth = 160, thumbHeight = 100) {
 // Messages
 const WM_LBUTTONDOWN = 0x0201;
 const WM_LBUTTONUP = 0x0202;
+const WM_RBUTTONDOWN = 0x0204;
+const WM_RBUTTONUP = 0x0205;
+const WM_MBUTTONDOWN = 0x0207;
+const WM_MBUTTONUP = 0x0208;
+const WM_LBUTTONDBLCLK = 0x0203;
 const MK_LBUTTON = 0x0001;
+const MK_RBUTTON = 0x0002;
+const MK_MBUTTON = 0x0010;
+
+const INPUT_TYPES = {
+    'left-click': { down: WM_LBUTTONDOWN, up: WM_LBUTTONUP, wparam: MK_LBUTTON },
+    'right-click': { down: WM_RBUTTONDOWN, up: WM_RBUTTONUP, wparam: MK_RBUTTON },
+    'middle-click': { down: WM_MBUTTONDOWN, up: WM_MBUTTONUP, wparam: MK_MBUTTON },
+    'double-click': { down: WM_LBUTTONDBLCLK, up: WM_LBUTTONUP, wparam: MK_LBUTTON }
+};
 
 function makeLParam(x, y) {
     return (y << 16) | (x & 0xFFFF);
@@ -233,10 +247,20 @@ function getVisibleWindows() {
     return windows;
 }
 
-function backgroundClick(hwnd, x, y) {
+function backgroundClick(hwnd, x, y, inputType = 'left-click') {
     const lParam = makeLParam(x, y);
-    PostMessageA(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam);
-    PostMessageA(hwnd, WM_LBUTTONUP, 0, lParam);
+    const type = INPUT_TYPES[inputType] || INPUT_TYPES['left-click'];
+
+    if (inputType === 'double-click') {
+        // Double-click: down, up, dblclk, up
+        PostMessageA(hwnd, WM_LBUTTONDOWN, type.wparam, lParam);
+        PostMessageA(hwnd, WM_LBUTTONUP, 0, lParam);
+        PostMessageA(hwnd, type.down, type.wparam, lParam);
+        PostMessageA(hwnd, type.up, 0, lParam);
+    } else {
+        PostMessageA(hwnd, type.down, type.wparam, lParam);
+        PostMessageA(hwnd, type.up, 0, lParam);
+    }
 }
 
 function captureMousePosition(hwnd) {
@@ -389,6 +413,7 @@ module.exports = {
     WM_LBUTTONDOWN,
     WM_LBUTTONUP,
     MK_LBUTTON,
+    INPUT_TYPES,
     focusWindow,
     captureWindowThumbnail
 };

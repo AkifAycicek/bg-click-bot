@@ -1,6 +1,6 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert');
-const { makeLParam, getVisibleWindows, backgroundClick, captureMousePosition, focusWindow, WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON } = require('../bot');
+const { makeLParam, getVisibleWindows, backgroundClick, captureMousePosition, focusWindow, WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON, INPUT_TYPES } = require('../bot');
 
 // --- makeLParam ---
 
@@ -137,6 +137,34 @@ describe('backgroundClick', () => {
             }
         });
     });
+
+    it('should support right-click input type', () => {
+        const windows = getVisibleWindows();
+        assert.doesNotThrow(() => {
+            backgroundClick(windows[0].hwnd, 100, 100, 'right-click');
+        });
+    });
+
+    it('should support middle-click input type', () => {
+        const windows = getVisibleWindows();
+        assert.doesNotThrow(() => {
+            backgroundClick(windows[0].hwnd, 100, 100, 'middle-click');
+        });
+    });
+
+    it('should support double-click input type', () => {
+        const windows = getVisibleWindows();
+        assert.doesNotThrow(() => {
+            backgroundClick(windows[0].hwnd, 100, 100, 'double-click');
+        });
+    });
+
+    it('should default to left-click for unknown input type', () => {
+        const windows = getVisibleWindows();
+        assert.doesNotThrow(() => {
+            backgroundClick(windows[0].hwnd, 100, 100, 'unknown-type');
+        });
+    });
 });
 
 // --- captureMousePosition ---
@@ -189,6 +217,17 @@ describe('module exports', () => {
         assert.strictEqual(typeof bot.backgroundClick, 'function');
         assert.strictEqual(typeof bot.captureMousePosition, 'function');
         assert.strictEqual(typeof bot.focusWindow, 'function');
+        assert.strictEqual(typeof bot.captureWindowThumbnail, 'function');
+    });
+
+    it('should export INPUT_TYPES with all click types', () => {
+        assert.ok(INPUT_TYPES['left-click']);
+        assert.ok(INPUT_TYPES['right-click']);
+        assert.ok(INPUT_TYPES['middle-click']);
+        assert.ok(INPUT_TYPES['double-click']);
+        assert.ok(INPUT_TYPES['left-click'].down);
+        assert.ok(INPUT_TYPES['left-click'].up);
+        assert.ok(INPUT_TYPES['left-click'].wparam !== undefined);
     });
 
     it('should export all required constants', () => {

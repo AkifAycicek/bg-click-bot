@@ -77,7 +77,7 @@ function startInstance(tabId, hwnd, points) {
     points.forEach((p, i) => {
         const timer = setInterval(() => {
             if (paused[i]) return;
-            bot.backgroundClick(hwnd, p.x, p.y);
+            bot.backgroundClick(hwnd, p.x, p.y, p.inputType);
             counts[i]++;
             const total = counts.reduce((a, b) => a + b, 0);
             if (mainWindow && !mainWindow.isDestroyed()) {

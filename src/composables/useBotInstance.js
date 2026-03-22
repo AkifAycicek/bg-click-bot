@@ -16,7 +16,7 @@ export function useBotInstance(tabId) {
 
     const currentPresetState = computed(() => ({
         windowTitle: selectedWindow.value?.title || '',
-        points: points.value.map(p => ({ name: p.name || null, x: p.x, y: p.y, interval: p.interval }))
+        points: points.value.map(p => ({ name: p.name || null, x: p.x, y: p.y, interval: p.interval, inputType: p.inputType || 'left-click' }))
     }));
 
     function onWindowSelected(win) {
@@ -38,7 +38,7 @@ export function useBotInstance(tabId) {
             window.electronAPI.updatePoints(
                 tabId,
                 selectedWindow.value.hwnd,
-                points.value.map(p => ({ x: p.x, y: p.y, interval: p.interval }))
+                points.value.map(p => ({ x: p.x, y: p.y, interval: p.interval, inputType: p.inputType || 'left-click' }))
             );
         }
     }
@@ -63,7 +63,7 @@ export function useBotInstance(tabId) {
         await window.electronAPI.startClicking(
             tabId,
             selectedWindow.value.hwnd,
-            points.value.map(p => ({ x: p.x, y: p.y, interval: p.interval }))
+            points.value.map(p => ({ x: p.x, y: p.y, interval: p.interval, inputType: p.inputType || 'left-click' }))
         );
 
         isRunning.value = true;
