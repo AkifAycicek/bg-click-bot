@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/AkifAycicek/bg-click-bot/compare/v0.1.3...v0.1.4) (2026-03-22)
+
+
+### Features
+
+* add input type selection for click points ([668750b](https://github.com/AkifAycicek/bg-click-bot/commit/668750b50613050ebd696a0843c0656916170118))
+
 ## [0.1.3](https://github.com/AkifAycicek/bg-click-bot/compare/v0.1.2...v0.1.3) (2026-03-22)
 
 
